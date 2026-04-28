@@ -523,14 +523,14 @@ When an image is provided, analyze it as a trading chart. Identify: indicator re
             document.getElementById('voiceSendBtn').classList.add('visible');
           } else if (data.error) {
             document.getElementById('voiceStatusLabel').textContent = 'Error';
-            document.getElementById('voiceTranscript').textContent = 'Transcription unavailable — type your setup instead.';
+            document.getElementById('voiceTranscript').textContent = 'API ERR: ' + JSON.stringify(data.error);
           } else {
             document.getElementById('voiceStatusLabel').textContent = 'Nothing captured';
             document.getElementById('voiceTranscript').textContent = 'No speech detected — try again.';
           }
         } catch (err) {
           document.getElementById('voiceStatusLabel').textContent = 'Error';
-          document.getElementById('voiceTranscript').textContent = 'Could not reach transcription service.';
+          document.getElementById('voiceTranscript').textContent = 'ERR: ' + String(err);
         }
 
         document.getElementById('pttBtn').className = 'ptt-btn';
