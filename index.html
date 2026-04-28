@@ -503,7 +503,7 @@ When an image is provided, analyze it as a trading chart. Identify: indicator re
         try {
           const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
           const formData = new FormData();
-          formData.append('audio', audioBlob, 'recording.webm');
+          formData.append('file', audioBlob, 'recording.webm');
 
           formData.append('model', 'whisper-1');
           formData.append('language', 'en');
