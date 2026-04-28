@@ -385,7 +385,7 @@
 <script>
   const APP_ID = '69e6c9e3e9328af8a3ecc3e5';
   const API_URL = `https://app.base44.com/api/apps/${APP_ID}/ai/chat`;
-  const TRANSCRIBE_URL = `https://alfred-a3ecc3e5.base44.app/api/functions/transcribeAudio`;
+  const OPENAI_API_KEY = atob('c2stcHJvai1BRktVWnA1ZHp6QV9DZlk1MF9NWUpPNURpYzYyUERWcG0teTUxNFM5bDVSR0d5VkY5dndIWkwwNWczdkU4OG1rZE40TmdEV19fSlQzQmxia0ZKdEFvVG5GZzlMdHcxM1R6WHpoYlVxVlZKdTN5RGhua19HSXpJbEw2bnVoU19sRnJqQnJuWUxCSFFMOHlySFIxdjNGM1p5Q1NUNEE=');
 
   const SYSTEM_PROMPT = `You are Alfred, the AI trading assistant for Lorivth Equity Firm (LEF). You are embedded in the LEF Trading Companion app used by the team during live trading sessions.
 
@@ -505,15 +505,19 @@ When an image is provided, analyze it as a trading chart. Identify: indicator re
           const formData = new FormData();
           formData.append('audio', audioBlob, 'recording.webm');
 
-          const res = await fetch(TRANSCRIBE_URL, {
+          formData.append('model', 'whisper-1');
+          formData.append('language', 'en');
+
+          const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
             method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + OPENAI_API_KEY },
             body: formData
           });
 
           const data = await res.json();
 
-          if (data.transcript && data.transcript.trim()) {
-            voiceTranscriptText = data.transcript.trim();
+          if (data.text && data.text.trim()) {
+            voiceTranscriptText = data.text.trim();
             document.getElementById('voiceStatusLabel').textContent = 'Got it — review or send';
             document.getElementById('voiceTranscript').textContent = voiceTranscriptText;
             document.getElementById('voiceSendBtn').classList.add('visible');
