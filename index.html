@@ -119,14 +119,14 @@ body.light-mode {
   }
   @keyframes fadeIn { from { transform: translateY(6px); } to { transform: translateY(0); } }
   .message.alfred {
-    background: rgba(26, 26, 26, 0.85);
+    background: rgba(26, 26, 26, 0.5);
     border: 1px solid #FFD700;
     border-left: 3px solid #FFD700;
     align-self: flex-start;
     color: var(--text-primary);
   }
   .message.user {
-    background: #FFD700;
+    background: rgba(255, 215, 0, 0.5);
     align-self: flex-end;
     font-weight: 500;
     color: #000000;
@@ -646,7 +646,7 @@ body.light-mode {
   }
   .settings-slider::-webkit-slider-thumb {
     -webkit-appearance: none; width: 14px; height: 14px;
-    border-radius: 50%; background: #FFD700; cursor: pointer;
+    border-radius: 50%; background: rgba(255, 215, 0, 0.5); cursor: pointer;
   }
   .settings-val { color: #FFD700; font-size: 12px; width: 34px; text-align: right; }
   .settings-toggle {
@@ -657,7 +657,7 @@ body.light-mode {
     position: absolute; inset: 0; background: var(--toggle-off); border-radius: 22px;
     transition: background 0.2s;
   }
-  .settings-toggle input:checked + .toggle-track { background: #FFD700; }
+  .settings-toggle input:checked + .toggle-track { background: rgba(255, 215, 0, 0.5); }
   .toggle-thumb {
     position: absolute; top: 3px; left: 3px;
     width: 16px; height: 16px; background: #fff;
@@ -709,7 +709,7 @@ body.light-mode {
     display: block;
     width: 18px;
     height: 2px;
-    background: #FFD700;
+    background: rgba(255, 215, 0, 0.5);
     border-radius: 2px;
     transition: all 0.3s;
   }
