@@ -559,6 +559,126 @@
     animation: fadeIn 0.2s ease;
   }
 
+
+  /* ── Hamburger Menu ── */
+  .hamburger-btn {
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    background: rgba(26, 26, 26, 0.80);
+    border: 1px solid #333;
+    border-radius: 8px;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    z-index: 50;
+    transition: border-color 0.2s;
+    padding: 0;
+  }
+  .hamburger-btn:hover { border-color: #FFD700; }
+  .hamburger-btn span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: #FFD700;
+    border-radius: 2px;
+    transition: all 0.3s;
+  }
+
+  .side-drawer {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 260px;
+    height: 100%;
+    background: rgba(10, 10, 10, 0.97);
+    border-right: 1px solid #FFD700;
+    z-index: 500;
+    transition: left 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow-y: auto;
+  }
+  .side-drawer.open { left: 0; }
+
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 499;
+  }
+  .drawer-overlay.open { display: block; }
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 16px 14px;
+    border-bottom: 1px solid #222;
+  }
+  .drawer-header img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+  }
+  .drawer-header-text {
+    font-size: 12px;
+    color: #FFD700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .drawer-section {
+    padding: 12px 16px 4px;
+    font-size: 9px;
+    color: #444;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .drawer-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 20px;
+    color: #888;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+    letter-spacing: 0.5px;
+  }
+  .drawer-item:hover {
+    color: #FFD700;
+    background: rgba(255,215,0,0.05);
+    border-left-color: #FFD700;
+  }
+  .drawer-item .drawer-icon { font-size: 16px; width: 22px; text-align: center; }
+
+  .drawer-divider {
+    height: 1px;
+    background: #1a1a1a;
+    margin: 8px 16px;
+  }
+
+  .drawer-footer {
+    margin-top: auto;
+    padding: 14px 20px;
+    font-size: 9px;
+    color: #333;
+    letter-spacing: 1px;
+    text-align: center;
+    border-top: 1px solid #1a1a1a;
+  }
+
   .header { position: relative; }
 
 </style>
@@ -589,6 +709,7 @@
 </div>
 
 <div class="header">
+  <button class="hamburger-btn" id="hamburgerBtn" title="Menu"><span></span><span></span><span></span></button>
   <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF">
   <div class="header-text">
     <div class="header-title">Alfred</div>
@@ -1270,12 +1391,66 @@ function showPfp(dataUrl) {
 const savedPfp = localStorage.getItem('lef_pfp');
 if (savedPfp) showPfp(savedPfp);
 
+
+function openDrawer() {
+  document.getElementById('sideDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('sideDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+}
+document.getElementById('hamburgerBtn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  openDrawer();
+});
+
 // Load on start
 loadProfile();
 </script>
 
 <div class="pfp-lightbox" id="pfpLightbox" onclick="document.getElementById('pfpLightbox').classList.remove('open')">
   <img id="pfpLightboxImg" src="" alt="Profile">
+</div>
+
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="side-drawer" id="sideDrawer">
+  <div class="drawer-header">
+    <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF">
+    <div class="drawer-header-text">LEF Menu</div>
+  </div>
+
+  <div class="drawer-section">Tools</div>
+  <div class="drawer-item" onclick="quickSend('Analyze this SRP setup for me'); closeDrawer()">
+    <span class="drawer-icon">📊</span> SRP Check
+  </div>
+  <div class="drawer-item" onclick="quickSend('What golden levels should I watch right now?'); closeDrawer()">
+    <span class="drawer-icon">🎯</span> Golden Levels
+  </div>
+  <div class="drawer-item" onclick="quickSend('MFI reading — am I in premium or discount?'); closeDrawer()">
+    <span class="drawer-icon">📈</span> MFI Read
+  </div>
+  <div class="drawer-item" onclick="quickSend('Give me a pre-trade checklist for my current setup'); closeDrawer()">
+    <span class="drawer-icon">✅</span> Pre-Trade Checklist
+  </div>
+  <div class="drawer-item" onclick="quickSend('Give me a session debrief and grade my trading today'); closeDrawer()">
+    <span class="drawer-icon">📝</span> Session Debrief
+  </div>
+
+  <div class="drawer-divider"></div>
+  <div class="drawer-section">Settings</div>
+  <div class="drawer-item" onclick="document.getElementById('profileDropdown').classList.toggle('open'); closeDrawer()">
+    <span class="drawer-icon">👤</span> My Profile
+  </div>
+  <div class="drawer-item" onclick="document.getElementById('chartFileInput').click(); closeDrawer()">
+    <span class="drawer-icon">📷</span> Upload Chart
+  </div>
+  <div class="drawer-item" onclick="if(confirm('Clear chat history?')){localStorage.removeItem('lef_alfred_history');location.reload();}; closeDrawer()">
+    <span class="drawer-icon">🗑️</span> Clear Chat
+  </div>
+
+  <div class="drawer-footer">LORIVTH EQUITY FIRM · ALFRED v1</div>
 </div>
 
 </body>
