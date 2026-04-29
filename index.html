@@ -941,6 +941,95 @@
 
   .header { position: relative; }
 
+
+  /* ── Mission Modal ── */
+  .mission-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    animation: fadeInBg 0.3s ease;
+  }
+  .mission-modal.active {
+    display: flex;
+  }
+  @keyframes fadeInBg {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .mission-card {
+    position: relative;
+    background: linear-gradient(145deg, #0d0d0d, #1a1a1a);
+    border: 1px solid #FFD700;
+    border-radius: 16px;
+    padding: 40px 36px 32px;
+    max-width: 480px;
+    width: 88%;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(255,215,0,0.15), 0 0 80px rgba(255,215,0,0.05);
+    animation: slideUp 0.35s cubic-bezier(0.22,1,0.36,1);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .mission-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: transparent;
+    border: none;
+    color: #555;
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .mission-close:hover { color: #FFD700; }
+  .mission-logo {
+    margin-bottom: 18px;
+  }
+  .mission-logo img {
+    width: 64px;
+    filter: drop-shadow(0 0 12px rgba(255,215,0,0.5));
+    animation: pulseGlow 3s ease-in-out infinite;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { filter: drop-shadow(0 0 8px rgba(255,215,0,0.4)); }
+    50%       { filter: drop-shadow(0 0 20px rgba(255,215,0,0.8)); }
+  }
+  .mission-label {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: #FFD700;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .mission-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, #FFD700, transparent);
+    margin: 0 auto 20px;
+    width: 80%;
+    opacity: 0.5;
+  }
+  .mission-text {
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    color: #d0d0d0;
+    margin: 0 0 20px;
+  }
+  .mission-tagline {
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: #444;
+    margin-top: 4px;
+  }
 </style>
 </head>
 <body>
@@ -971,7 +1060,7 @@
 <div class="header">
   <button class="hamburger-btn" id="hamburgerBtn" title="Menu"><span></span><span></span><span></span></button>
   <button class="journal-tab-btn" title="Trade Journal — Coming Soon">📔</button>
-  <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF">
+  <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF" id="lefLogoBtn" onclick="document.getElementById('missionModal').classList.add('active')" style="cursor:pointer;">
   <div class="header-text">
     <div class="header-title">Alfred</div>
     <div class="header-sub">LEF Trading Companion</div>
@@ -2007,7 +2096,7 @@ cloudLoadProfile();
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 <div class="side-drawer" id="sideDrawer">
   <div class="drawer-header">
-    <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF">
+    <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF" id="lefLogoBtn" onclick="document.getElementById('missionModal').classList.add('active')" style="cursor:pointer;">
     <div class="drawer-header-text">LEF Menu</div>
   </div>
 
@@ -2062,5 +2151,22 @@ cloudLoadProfile();
   <button class="text-expand-done" onclick="closeExpandPanel()">Done</button>
 </div>
 
+
+<!-- Mission Statement Modal -->
+<div id="missionModal" class="mission-modal" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="mission-card">
+    <button class="mission-close" onclick="document.getElementById('missionModal').classList.remove('active')">✕</button>
+    <div class="mission-logo">
+      <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF">
+    </div>
+    <div class="mission-label">OUR MISSION</div>
+    <div class="mission-divider"></div>
+    <p class="mission-text">
+      The LEF Trading Companion bridges the gap between knowledge and execution. Powered by the full LEF system, it keeps traders disciplined and focused — delivering real-time bias checks, system validation, and zero tolerance for emotional decisions. From the first candle to the final review, it holds you to the process.
+    </p>
+    <div class="mission-divider"></div>
+    <div class="mission-tagline">LORIVTH EQUITY FIRM</div>
+  </div>
+</div>
 </body>
 </html>
