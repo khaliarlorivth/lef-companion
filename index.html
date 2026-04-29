@@ -527,6 +527,28 @@
   }
   .profile-pic-label:hover { color: #FFD700; }
 
+
+  .pfp-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .pfp-lightbox.open { display: flex; }
+  .pfp-lightbox img {
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    border: 3px solid #FFD700;
+    object-fit: cover;
+    box-shadow: 0 0 60px rgba(255,215,0,0.3);
+    animation: fadeIn 0.2s ease;
+  }
+
   .header { position: relative; }
 
 </style>
@@ -569,7 +591,7 @@
   <div class="profile-dropdown" id="profileDropdown">
     <h3>Your Profile</h3>
     <div class="profile-pic-area">
-      <div class="profile-pic-circle" id="pfpCircle" onclick="document.getElementById('pfpInput').click()" title="Upload photo">
+      <div class="profile-pic-circle" id="pfpCircle" onclick="pfpCircleClick()" title="Click to view / upload photo">
         <span id="pfpPlaceholder">👤</span>
         <img id="pfpImg" src="" alt="" style="display:none;">
       </div>
@@ -1197,6 +1219,17 @@ document.getElementById('pStartDate').addEventListener('change', function() {
 });
 
 
+
+function pfpCircleClick() {
+  const saved = localStorage.getItem('lef_pfp');
+  if (saved) {
+    document.getElementById('pfpLightboxImg').src = saved;
+    document.getElementById('pfpLightbox').classList.add('open');
+  } else {
+    document.getElementById('pfpInput').click();
+  }
+}
+
 function handlePfp(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1223,6 +1256,10 @@ if (savedPfp) showPfp(savedPfp);
 // Load on start
 loadProfile();
 </script>
+
+<div class="pfp-lightbox" id="pfpLightbox" onclick="document.getElementById('pfpLightbox').classList.remove('open')">
+  <img id="pfpLightboxImg" src="" alt="Profile">
+</div>
 
 </body>
 </html>
