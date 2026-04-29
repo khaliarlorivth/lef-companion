@@ -135,7 +135,7 @@ body.light-mode {
   .message.user * { color: #000 !important; opacity: 1 !important; }
   .message-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
   .message.alfred .message-label { color: #FFD700; }
-  .message.user .message-label { color: #000; opacity: 1; }
+  .message.user .message-label { color: #000 !important; opacity: 1 !important; }
 
   .message img.chart-img {
     max-width: 100%;
@@ -1659,6 +1659,20 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
     }
     div.innerHTML = inner;
     area.appendChild(div);
+    // Apply current opacity setting to background only — never touch text
+    const currentOp = localStorage.getItem('lef_setting_opacity') || '100';
+    const frac = (parseInt(currentOp) / 100).toFixed(2);
+    if (type === 'alfred') {
+      div.style.setProperty('background', `rgba(26, 26, 26, ${frac})`, 'important');
+      div.style.setProperty('color', 'var(--text-primary)', 'important');
+    } else {
+      div.style.setProperty('background', `rgba(255, 215, 0, ${frac})`, 'important');
+      div.style.setProperty('color', '#000', 'important');
+      div.querySelectorAll('*').forEach(child => {
+        child.style.removeProperty('opacity');
+        child.style.setProperty('color', '#000', 'important');
+      });
+    }
     area.scrollTop = area.scrollHeight;
   }
 
@@ -2031,14 +2045,21 @@ function applyFontSize(val, save=true) {
 
 function applyOpacity(val, save=true) {
   const frac = (parseInt(val) / 100).toFixed(2);
-  // Only change background alpha — never touch opacity property (keeps text fully visible)
+  // Only adjust background alpha — element opacity and text color are never touched
   document.querySelectorAll('.message.alfred').forEach(el => {
-    el.style.background = `rgba(26, 26, 26, ${frac})`;
-    el.style.opacity = '';
+    el.style.setProperty('background', `rgba(26, 26, 26, ${frac})`, 'important');
+    el.style.removeProperty('opacity');
+    el.style.setProperty('color', 'var(--text-primary)', 'important');
   });
   document.querySelectorAll('.message.user').forEach(el => {
-    el.style.background = `rgba(255, 215, 0, ${frac})`;
-    el.style.opacity = '';
+    el.style.setProperty('background', `rgba(255, 215, 0, ${frac})`, 'important');
+    el.style.removeProperty('opacity');
+    el.style.setProperty('color', '#000', 'important');
+    // Force all child elements to stay fully visible
+    el.querySelectorAll('*').forEach(child => {
+      child.style.removeProperty('opacity');
+      child.style.setProperty('color', '#000', 'important');
+    });
   });
   // Sync slider UI
   const slider = document.getElementById('settingOpacity');
