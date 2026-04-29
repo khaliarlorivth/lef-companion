@@ -487,6 +487,46 @@
     min-height: 14px;
   }
 
+
+  .profile-pic-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .profile-pic-circle {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2px solid #FFD700;
+    background: rgba(26,26,26,0.80);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    color: #444;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.2s;
+    position: relative;
+  }
+  .profile-pic-circle:hover { border-color: #fff; }
+  .profile-pic-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  .profile-pic-label {
+    font-size: 10px;
+    color: #555;
+    margin-top: 6px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .profile-pic-label:hover { color: #FFD700; }
+
   .header { position: relative; }
 
 </style>
@@ -528,6 +568,14 @@
   <button class="profile-btn" id="profileBtn" title="Your Profile">👤</button>
   <div class="profile-dropdown" id="profileDropdown">
     <h3>Your Profile</h3>
+    <div class="profile-pic-area">
+      <div class="profile-pic-circle" id="pfpCircle" onclick="document.getElementById('pfpInput').click()" title="Upload photo">
+        <span id="pfpPlaceholder">👤</span>
+        <img id="pfpImg" src="" alt="" style="display:none;">
+      </div>
+      <span class="profile-pic-label" onclick="document.getElementById('pfpInput').click()">Upload Photo</span>
+      <input type="file" id="pfpInput" accept="image/*" style="display:none;" onchange="handlePfp(this)">
+    </div>
     <div class="profile-field">
       <label>Name</label>
       <input type="text" id="pName" placeholder="Full name" maxlength="40">
@@ -1147,6 +1195,30 @@ document.addEventListener('click', function(e) {
 document.getElementById('pStartDate').addEventListener('change', function() {
   document.getElementById('pDuration').textContent = calcDuration(this.value);
 });
+
+
+function handlePfp(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    localStorage.setItem('lef_pfp', dataUrl);
+    showPfp(dataUrl);
+  };
+  reader.readAsDataURL(file);
+}
+
+function showPfp(dataUrl) {
+  if (!dataUrl) return;
+  document.getElementById('pfpImg').src = dataUrl;
+  document.getElementById('pfpImg').style.display = 'block';
+  document.getElementById('pfpPlaceholder').style.display = 'none';
+}
+
+// Load pfp on start
+const savedPfp = localStorage.getItem('lef_pfp');
+if (savedPfp) showPfp(savedPfp);
 
 // Load on start
 loadProfile();
