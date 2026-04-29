@@ -2379,6 +2379,117 @@ function closeExpandPanel() {
 
 // Load on start
 cloudLoadProfile();
+
+// ============================================================
+// PIN LOCK SYSTEM
+// ============================================================
+const DEFAULT_PIN = '1234';
+const AUTO_LOCK_MINUTES = 5;
+let pinBuffer = '';
+let lockTimer = null;
+
+function getStoredPin() {
+  return localStorage.getItem('lef_pin') || DEFAULT_PIN;
+}
+
+function showLockScreen() {
+  document.getElementById('pinLockScreen').classList.remove('hidden');
+  pinBuffer = '';
+  updatePinDots();
+  document.getElementById('pinError').textContent = '';
+}
+
+function hideLockScreen() {
+  document.getElementById('pinLockScreen').classList.add('hidden');
+  resetLockTimer();
+}
+
+function resetLockTimer() {
+  clearTimeout(lockTimer);
+  lockTimer = setTimeout(showLockScreen, AUTO_LOCK_MINUTES * 60 * 1000);
+}
+
+function updatePinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('pd' + i);
+    if (dot) dot.classList.toggle('filled', i < pinBuffer.length);
+  }
+}
+
+function pinPress(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if (pinBuffer.length === 4) {
+    setTimeout(checkPin, 150);
+  }
+}
+
+function pinDelete() {
+  if (pinBuffer.length > 0) {
+    pinBuffer = pinBuffer.slice(0, -1);
+    updatePinDots();
+    document.getElementById('pinError').textContent = '';
+  }
+}
+
+function checkPin() {
+  if (pinBuffer === getStoredPin()) {
+    hideLockScreen();
+  } else {
+    document.getElementById('pinError').textContent = 'INCORRECT PIN';
+    pinBuffer = '';
+    updatePinDots();
+    // Shake effect
+    const screen = document.getElementById('pinLockScreen');
+    screen.style.animation = 'none';
+    screen.style.transform = 'translateX(-10px)';
+    setTimeout(() => { screen.style.transform = 'translateX(10px)'; }, 80);
+    setTimeout(() => { screen.style.transform = 'translateX(0)'; }, 160);
+  }
+}
+
+function saveNewPin() {
+  const current = document.getElementById('pinCurrent').value;
+  const newPin = document.getElementById('pinNew').value;
+  const confirm = document.getElementById('pinConfirm').value;
+  const msg = document.getElementById('pinChangeMsg');
+
+  if (current !== getStoredPin()) {
+    msg.style.color = '#FF3333';
+    msg.textContent = 'CURRENT PIN INCORRECT';
+    return;
+  }
+  if (newPin.length !== 4 || !/^[0-9]{4}$/.test(newPin)) {
+    msg.style.color = '#FF3333';
+    msg.textContent = 'PIN MUST BE 4 DIGITS';
+    return;
+  }
+  if (newPin !== confirm) {
+    msg.style.color = '#FF3333';
+    msg.textContent = 'PINS DO NOT MATCH';
+    return;
+  }
+
+  localStorage.setItem('lef_pin', newPin);
+  document.getElementById('pinCurrent').value = '';
+  document.getElementById('pinNew').value = '';
+  document.getElementById('pinConfirm').value = '';
+  msg.style.color = '#FFD700';
+  msg.textContent = 'PIN UPDATED ✓';
+  setTimeout(() => { msg.textContent = ''; }, 3000);
+}
+
+// Reset lock timer on any user interaction
+['click','keydown','touchstart','mousemove'].forEach(evt => {
+  document.addEventListener(evt, resetLockTimer, { passive: true });
+});
+
+// Show lock screen on load
+window.addEventListener('DOMContentLoaded', () => {
+  showLockScreen();
+});
+
 </script>
 
 <div class="pfp-lightbox" id="pfpLightbox" onclick="document.getElementById('pfpLightbox').classList.remove('open')">
@@ -2466,6 +2577,18 @@ cloudLoadProfile();
       </div>
     </div>
     <button class="settings-danger-btn" onclick="clearChatConfirm()">🗑 Clear Chat History</button>
+
+    <div class="settings-section-label">Security</div>
+    <div class="pin-change-form">
+      <label>CURRENT PIN</label>
+      <input type="password" inputmode="numeric" maxlength="4" id="pinCurrent" placeholder="••••">
+      <label>NEW PIN</label>
+      <input type="password" inputmode="numeric" maxlength="4" id="pinNew" placeholder="••••">
+      <label>CONFIRM NEW PIN</label>
+      <input type="password" inputmode="numeric" maxlength="4" id="pinConfirm" placeholder="••••">
+      <button class="pin-save-btn" onclick="saveNewPin()">SAVE NEW PIN</button>
+      <div class="pin-msg" id="pinChangeMsg"></div>
+    </div>
 
     <div class="settings-section-label">Mic / Voice</div>
     <div class="settings-row">
