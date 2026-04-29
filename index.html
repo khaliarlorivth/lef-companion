@@ -1485,6 +1485,7 @@ function saveProfile() {
     startDate: document.getElementById('pStartDate').value
   };
   localStorage.setItem('lef_profile', JSON.stringify(p));
+  cloudSaveProfile();
   const msg = document.getElementById('profileSavedMsg');
   msg.style.opacity = '1';
   setTimeout(() => { msg.style.opacity = '0'; }, 2000);
@@ -1530,8 +1531,7 @@ function handlePfp(input) {
   const reader = new FileReader();
   reader.onload = function(e) {
     const dataUrl = e.target.result;
-    localStorage.setItem('lef_pfp', dataUrl);
-    showPfp(dataUrl);
+    cloudSavePfp(dataUrl);
   };
   reader.readAsDataURL(file);
 }
@@ -1624,6 +1624,7 @@ function saveTabDetail() {
   tabs[currentTabIndex].tool = document.getElementById('tabDetailTool').value.trim();
   tabs[currentTabIndex].strat = document.getElementById('tabDetailStrat').value.trim();
   localStorage.setItem('lef_tabs', JSON.stringify(tabs));
+  cloudSaveTabs();
   const msg = document.getElementById('tabDetailSaved');
   msg.style.opacity = '1';
   setTimeout(() => { msg.style.opacity = '0'; }, 2000);
@@ -1648,6 +1649,7 @@ function saveTab() {
   const icon = TAB_ICONS[tabs.length % TAB_ICONS.length];
   tabs.push({ name, icon });
   localStorage.setItem('lef_tabs', JSON.stringify(tabs));
+  cloudSaveTabs();
   renderTabs(tabs);
   closeTabModal();
 }
@@ -1658,13 +1660,135 @@ function deleteTab(e, index) {
   const tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
   tabs.splice(index, 1);
   localStorage.setItem('lef_tabs', JSON.stringify(tabs));
+  cloudSaveTabs();
   renderTabs(tabs);
 }
 
 loadTabs();
 
+
+// ── Cloud Profile Sync ──
+const BASE44_API = 'https://api.base44.com/api/apps/69e6c9e3e9328af8a3ecc3e5/entities/CompanionProfile';
+const PROFILE_KEY = 'lef_user_key';
+
+function getUserKey() {
+  let key = localStorage.getItem(PROFILE_KEY);
+  if (!key) {
+    // Generate a unique key per browser/device
+    key = 'user_' + Math.random().toString(36).substr(2, 12) + '_' + Date.now();
+    localStorage.setItem(PROFILE_KEY, key);
+  }
+  return key;
+}
+
+async function cloudLoadProfile() {
+  try {
+    const key = getUserKey();
+    const res = await fetch(BASE44_API + '/filter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_key: key })
+    });
+    if (!res.ok) throw new Error('fetch failed');
+    const records = await res.json();
+    if (records && records.length > 0) {
+      const r = records[0];
+      // Restore profile fields
+      if (r.full_name) document.getElementById('profileName').value = r.full_name;
+      if (r.nickname) document.getElementById('profileNickname').value = r.nickname;
+      if (r.title) document.getElementById('profileTitle').value = r.title;
+      if (r.start_date) document.getElementById('profileStart').value = r.start_date;
+      if (r.full_name || r.start_date) updateTenure();
+      // Restore PFP
+      if (r.pfp_url) {
+        showPfp(r.pfp_url);
+        localStorage.setItem('lef_pfp', r.pfp_url);
+      }
+      // Restore tabs
+      if (r.tabs) {
+        try {
+          const tabs = JSON.parse(r.tabs);
+          localStorage.setItem('lef_tabs', r.tabs);
+          renderTabs(tabs);
+        } catch(e) {}
+      }
+      window._cloudProfileId = r.id;
+    } else {
+      // No cloud record yet — load from localStorage as fallback then save
+      loadProfile();
+      loadTabs();
+      await cloudSaveProfile();
+    }
+  } catch(e) {
+    console.warn('Cloud load failed, using localStorage:', e);
+    loadProfile();
+    loadTabs();
+  }
+}
+
+async function cloudSaveProfile() {
+  try {
+    const key = getUserKey();
+    const tabs = localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]';
+    const pfp = localStorage.getItem('lef_pfp') || '';
+    const body = {
+      user_key: key,
+      full_name: document.getElementById('profileName').value,
+      nickname: document.getElementById('profileNickname').value,
+      title: document.getElementById('profileTitle').value,
+      start_date: document.getElementById('profileStart').value,
+      pfp_url: pfp,
+      tabs: tabs
+    };
+
+    if (window._cloudProfileId) {
+      // Update existing
+      await fetch(BASE44_API + '/' + window._cloudProfileId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    } else {
+      // Create new
+      const res = await fetch(BASE44_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        const created = await res.json();
+        window._cloudProfileId = created.id;
+      }
+    }
+  } catch(e) {
+    console.warn('Cloud save failed:', e);
+  }
+}
+
+async function cloudSaveTabs() {
+  const tabs = localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]';
+  try {
+    const key = getUserKey();
+    if (window._cloudProfileId) {
+      await fetch(BASE44_API + '/' + window._cloudProfileId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_key: key, tabs: tabs })
+      });
+    } else {
+      await cloudSaveProfile();
+    }
+  } catch(e) { console.warn('Tab cloud save failed:', e); }
+}
+
+async function cloudSavePfp(dataUrl) {
+  localStorage.setItem('lef_pfp', dataUrl);
+  showPfp(dataUrl);
+  await cloudSaveProfile();
+}
+
 // Load on start
-loadProfile();
+cloudLoadProfile();
 </script>
 
 <div class="pfp-lightbox" id="pfpLightbox" onclick="document.getElementById('pfpLightbox').classList.remove('open')">
