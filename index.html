@@ -2537,13 +2537,13 @@ cloudLoadProfile();
 // ============================================================
 // PIN LOCK SYSTEM
 // ============================================================
-const DEFAULT_PIN = '1234';
+const MASTER_PASSWORD = '1234';
 const AUTO_LOCK_MINUTES = 5;
 let pinBuffer = '';
 let lockTimer = null;
 
 function getStoredPin() {
-  return localStorage.getItem('lef_pin') || DEFAULT_PIN;
+  return localStorage.getItem('lef_pin') || '';
 }
 
 function showLockScreen() {
@@ -2585,7 +2585,10 @@ function pinDelete() {
 }
 
 function checkPin() {
-  if (pinBuffer === getStoredPin()) {
+  const userPin = getStoredPin();
+  const isMaster = pinBuffer === MASTER_PASSWORD;
+  const isUserPin = userPin && pinBuffer === userPin;
+  if (isMaster || isUserPin) {
     hideLockScreen();
   } else {
     document.getElementById('pinError').textContent = 'INCORRECT PIN';
@@ -2606,7 +2609,9 @@ function saveNewPin() {
   const confirm = document.getElementById('pinConfirm').value;
   const msg = document.getElementById('pinChangeMsg');
 
-  if (current !== getStoredPin()) {
+  const storedPin = getStoredPin();
+  const validCurrent = (current === MASTER_PASSWORD) || (storedPin && current === storedPin);
+  if (!validCurrent) {
     msg.style.color = '#FF3333';
     msg.textContent = 'CURRENT PIN INCORRECT';
     return;
