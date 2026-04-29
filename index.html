@@ -119,37 +119,31 @@ body.light-mode {
   }
   @keyframes fadeIn { from { transform: translateY(6px); } to { transform: translateY(0); } }
   .message.alfred {
-    background: rgba(26, 26, 26, 1.0);
+    background: rgba(26, 26, 26, var(--alfred-alpha, 1));
     border: 1px solid #FFD700;
     border-left: 3px solid #FFD700;
     align-self: flex-start;
-    color: var(--text-primary);
+    color: var(--text-primary) !important;
   }
-  .message.alfred * { opacity: 1 !important; }
-  /* Lock all bubble text permanently — slider cannot affect words */
-  .message.alfred, .message.alfred *,
-  .message.user, .message.user * {
-    color: inherit;
-  }
-  .message.alfred { color: var(--text-primary) !important; }
-  .message.user { color: #000 !important; }
-  .message.alfred > *:not(.chart-img) { opacity: 1 !important; color: var(--text-primary) !important; }
-  .message.user > *:not(.chart-img) { opacity: 1 !important; color: #000 !important; }
   .message.user {
-    background: rgba(255, 215, 0, 1.0);
-    color: #000 !important;
+    background: rgba(255, 215, 0, var(--user-alpha, 1));
     align-self: flex-end;
     font-weight: 500;
-  }
-  .message.user * { color: #000 !important; opacity: 1 !important; }
-  .message-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
-  .message.alfred .message-label { color: #FFD700; }
-  .message.user .message-label { color: #000 !important; opacity: 1 !important; }
-  /* PERMANENT TEXT LOCK — slider only affects background, never text */
-  .message.user, .message.user * {
     color: #000000 !important;
+  }
+  /* Text inside bubbles is ALWAYS fully opaque — only background alpha changes */
+  .message.alfred *, .message.user * {
     opacity: 1 !important;
   }
+  .message.user, .message.user * {
+    color: #000000 !important;
+  }
+  .message.alfred, .message.alfred * {
+    color: var(--text-primary) !important;
+  }
+  .message-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
+  .message.alfred .message-label { color: #FFD700; }
+  .message.user .message-label { color: #000000 !important; opacity: 1 !important; }}
   .message.alfred, .message.alfred * {
     opacity: 1 !important;
   }
@@ -1676,19 +1670,14 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
     }
     div.innerHTML = inner;
     area.appendChild(div);
-    // Apply current opacity setting to background only — never touch text
+    // Apply current opacity to new bubble via CSS custom property
     const currentOp = localStorage.getItem('lef_setting_opacity') || '100';
     const frac = (parseInt(currentOp) / 100).toFixed(2);
     if (type === 'alfred') {
-      div.style.setProperty('background', `rgba(26, 26, 26, ${frac})`, 'important');
-      div.style.setProperty('color', 'var(--text-primary)', 'important');
+      div.style.setProperty('--alfred-alpha', frac);
     } else {
-      div.style.setProperty('background', `rgba(255, 215, 0, ${frac})`, 'important');
-      div.style.setProperty('color', '#000', 'important');
-      div.querySelectorAll('*').forEach(child => {
-        child.style.removeProperty('opacity');
-        child.style.setProperty('color', '#000', 'important');
-      });
+      div.style.setProperty('--user-alpha', frac);
+      div.style.setProperty('color', '#000000', 'important');
     }
     area.scrollTop = area.scrollHeight;
   }
@@ -2062,12 +2051,20 @@ function applyFontSize(val, save=true) {
 
 function applyOpacity(val, save=true) {
   const frac = (parseInt(val) / 100).toFixed(2);
-  // ONLY change background color alpha — never touch opacity or color of text
+  // Set CSS custom property on each bubble — background reads the var, text is untouched
   document.querySelectorAll('.message.alfred').forEach(el => {
-    el.style.background = `rgba(26, 26, 26, ${frac})`;
+    el.style.setProperty('--alfred-alpha', frac);
+    el.style.removeProperty('background');
   });
   document.querySelectorAll('.message.user').forEach(el => {
-    el.style.background = `rgba(255, 215, 0, ${frac})`;
+    el.style.setProperty('--user-alpha', frac);
+    el.style.removeProperty('background');
+    // Re-enforce text color explicitly so nothing can override it
+    el.style.setProperty('color', '#000000', 'important');
+    el.querySelectorAll('*').forEach(c => {
+      c.style.setProperty('color', '#000000', 'important');
+      c.style.removeProperty('opacity');
+    });
   });
   const slider = document.getElementById('settingOpacity');
   const lbl = document.getElementById('settingOpacityVal');
