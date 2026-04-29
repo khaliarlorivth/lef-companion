@@ -311,6 +311,29 @@
   .quick-btn:hover { border-color: #FFD700; color: #FFD700; }
   .watermark { text-align: center; font-size: 9px; color: #333; padding-top: 6px; letter-spacing: 1px; }
   #chartFileInput { display: none; }
+
+  @media (max-width: 768px) {
+    .input-row {
+      width: 100% !important;
+      margin: 0 !important;
+    }
+    .input-area {
+      padding: 8px 12px;
+    }
+    .chat-area {
+      padding: 12px;
+    }
+    .message {
+      max-width: 95%;
+    }
+    .quick-actions {
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .header-title {
+      font-size: 16px;
+    }
+  }
 </style>
 </head>
 <body>
