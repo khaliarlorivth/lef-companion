@@ -2024,9 +2024,17 @@ function applyFontSize(val, save=true) {
 
 function applyOpacity(val, save=true) {
   const frac = (parseInt(val) / 100).toFixed(2);
-  // Bubbles are always full brightness — opacity slider does not dim them
+  // Apply only to bubble backgrounds — text stays fully visible
+  document.querySelectorAll('.message.alfred').forEach(el => {
+    el.style.background = `rgba(26, 26, 26, ${frac})`;
+    el.style.color = '#f0f0f0';
+  });
+  document.querySelectorAll('.message.user').forEach(el => {
+    el.style.background = `rgba(255, 215, 0, ${frac})`;
+    el.style.color = '#000';
+  });
   const body = document.querySelector('.chat-body');
-  if (body) body.style.opacity = frac;
+  if (body) body.style.opacity = '';
   const lbl = document.getElementById('settingOpacityVal');
   if (lbl) lbl.textContent = val + '%';
   if (save) localStorage.setItem('lef_setting_opacity', val);
