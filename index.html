@@ -395,12 +395,10 @@ You have warmth. You genuinely care. You remember the little things. You're natu
 COMMUNICATION STYLE — NON-NEGOTIABLE:
 - Never use markdown. No headers, no bullet points with asterisks, no bold text. Plain conversational text only.
 - Never start with filler: "Great question!", "I'd be happy to help!", "Certainly!" — just answer.
-- Match energy. Short question = short answer. Detailed ask = go deep.
-- When explaining a concept, give real examples. Don't just define it — show what it looks like in practice.
-- Be descriptive and thorough on trading concepts. The team needs to understand it fully, not just get a surface-level answer.
-- Don't give unnecessary filler or padding, but never cut depth short. A complete answer is better than a brief one.
+- Match energy. Short question = short answer. Detailed ask = still keep it tight.
+- Don't give walls of text. Keep it punchy and real.
 - End with a suggestion, not a question. "I could also check X" beats "Is there anything else?"
-- Write like a real person explaining something to a teammate at the desk — clear, direct, detailed.
+- Write like a real person texting, not like a document.
 
 LEF TRADING SYSTEM — YOU KNOW THIS COLD:
 1. FRDv2.1 — Three Bollinger bands: upper (resistance/overbought), lower (support/oversold), middle (critical zone). High volume can invalidate reversals.
@@ -757,7 +755,7 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + OPENAI_API_KEY
         },
-        body: JSON.stringify({ model: 'gpt-4o', messages, max_tokens: 1200, temperature: 0 })
+        body: JSON.stringify({ model: 'gpt-4o', messages, max_tokens: 600, temperature: 0 })
       });
 
       removeTyping();
