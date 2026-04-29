@@ -379,6 +379,116 @@
     z-index: 0;
     pointer-events: none;
   }
+
+  /* ── Profile Button & Dropdown ── */
+  .profile-btn {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: rgba(26, 26, 26, 0.80);
+    border: 1px solid #FFD700;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    color: #FFD700;
+    z-index: 50;
+    transition: all 0.2s;
+  }
+  .profile-btn:hover { background: rgba(255,215,0,0.15); }
+
+  .profile-dropdown {
+    display: none;
+    position: absolute;
+    top: 58px;
+    right: 16px;
+    width: 280px;
+    background: rgba(17, 17, 17, 0.95);
+    border: 1px solid #FFD700;
+    border-radius: 12px;
+    padding: 18px;
+    z-index: 200;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    animation: fadeIn 0.2s ease;
+  }
+  .profile-dropdown.open { display: block; }
+
+  .profile-dropdown h3 {
+    color: #FFD700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 0 0 14px 0;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+  }
+
+  .profile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+  .profile-field label {
+    font-size: 10px;
+    color: #888;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+  .profile-field input {
+    background: rgba(26,26,26,0.80);
+    border: 1px solid #333;
+    border-radius: 7px;
+    padding: 7px 10px;
+    color: #f0f0f0;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .profile-field input:focus { border-color: #FFD700; }
+  .profile-field input::placeholder { color: #444; }
+
+  .profile-duration {
+    font-size: 11px;
+    color: #FFD700;
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+    min-height: 16px;
+  }
+
+  .profile-save-btn {
+    width: 100%;
+    background: rgba(255,215,0,0.15);
+    border: 1px solid #FFD700;
+    color: #FFD700;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: background 0.2s;
+    font-family: inherit;
+  }
+  .profile-save-btn:hover { background: rgba(255,215,0,0.28); }
+
+  .profile-saved-msg {
+    text-align: center;
+    font-size: 11px;
+    color: #FFD700;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    min-height: 14px;
+  }
+
+  .header { position: relative; }
+
 </style>
 </head>
 <body>
@@ -414,6 +524,31 @@
     <button onclick="if(confirm('Clear chat history?')){localStorage.removeItem(\'lef_alfred_history\');location.reload();}" style="background:transparent;border:none;color:#444;font-size:10px;cursor:pointer;padding:2px 6px;border-radius:4px;" title="Clear history">✕ Clear</button>
   </div>
   <div class="status-dot"></div>
+
+  <button class="profile-btn" id="profileBtn" title="Your Profile">👤</button>
+  <div class="profile-dropdown" id="profileDropdown">
+    <h3>Your Profile</h3>
+    <div class="profile-field">
+      <label>Name</label>
+      <input type="text" id="pName" placeholder="Full name" maxlength="40">
+    </div>
+    <div class="profile-field">
+      <label>Nickname</label>
+      <input type="text" id="pNickname" placeholder="What Alfred calls you" maxlength="20">
+    </div>
+    <div class="profile-field">
+      <label>Title</label>
+      <input type="text" id="pTitle" placeholder="e.g. Lead Trader, Analyst..." maxlength="40">
+    </div>
+    <div class="profile-field">
+      <label>Started with LEF</label>
+      <input type="date" id="pStartDate">
+      <div class="profile-duration" id="pDuration"></div>
+    </div>
+    <button class="profile-save-btn" onclick="saveProfile()">SAVE PROFILE</button>
+    <div class="profile-saved-msg" id="profileSavedMsg">Profile saved ✓</div>
+  </div>
+
 </div>
 
 <div class="chat-area" id="chatArea">
@@ -945,6 +1080,76 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
   init();
   draw();
 })();
+</script>
+
+
+<script>
+// ── Profile System ──
+function calcDuration(dateStr) {
+  if (!dateStr) return '';
+  const start = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - start;
+  if (diffMs < 0) return '';
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days === 0) return 'Day 1 Trader';
+  if (days < 30) return days + ' day' + (days !== 1 ? 's' : '') + ' with LEF';
+  const months = Math.floor(days / 30.44);
+  if (months < 12) return months + ' month' + (months !== 1 ? 's' : '') + ' with LEF';
+  const years = Math.floor(months / 12);
+  const remMonths = months % 12;
+  if (remMonths === 0) return years + ' year' + (years !== 1 ? 's' : '') + ' with LEF';
+  return years + 'yr ' + remMonths + 'mo with LEF';
+}
+
+function loadProfile() {
+  const p = JSON.parse(localStorage.getItem('lef_profile') || '{}');
+  if (p.name) document.getElementById('pName').value = p.name;
+  if (p.nickname) document.getElementById('pNickname').value = p.nickname;
+  if (p.title) document.getElementById('pTitle').value = p.title;
+  if (p.startDate) {
+    document.getElementById('pStartDate').value = p.startDate;
+    document.getElementById('pDuration').textContent = calcDuration(p.startDate);
+  }
+}
+
+function saveProfile() {
+  const p = {
+    name: document.getElementById('pName').value.trim(),
+    nickname: document.getElementById('pNickname').value.trim(),
+    title: document.getElementById('pTitle').value.trim(),
+    startDate: document.getElementById('pStartDate').value
+  };
+  localStorage.setItem('lef_profile', JSON.stringify(p));
+  const msg = document.getElementById('profileSavedMsg');
+  msg.style.opacity = '1';
+  setTimeout(() => { msg.style.opacity = '0'; }, 2000);
+  if (p.nickname || p.name) {
+    window._profileName = p.nickname || p.name;
+  }
+}
+
+// Toggle dropdown
+document.getElementById('profileBtn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  document.getElementById('profileDropdown').classList.toggle('open');
+});
+
+// Close on outside click
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('profileDropdown');
+  if (!dd.contains(e.target) && e.target.id !== 'profileBtn') {
+    dd.classList.remove('open');
+  }
+});
+
+// Live duration update as they pick a date
+document.getElementById('pStartDate').addEventListener('change', function() {
+  document.getElementById('pDuration').textContent = calcDuration(this.value);
+});
+
+// Load on start
+loadProfile();
 </script>
 
 </body>
