@@ -45,16 +45,6 @@
   .chat-area::-webkit-scrollbar-track { background: #111; }
   .chat-area::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 2px; }
 
-  .center-column {
-    width: 50%;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    overflow: hidden;
-    min-width: 320px;
-  }
-
 
   .message {
     max-width: 38%;
@@ -355,7 +345,6 @@
   <div class="status-dot"></div>
 </div>
 
-<div class="center-column">
 <div class="chat-area" id="chatArea">
   <div class="message alfred">
     <div class="message-label">Alfred</div>
@@ -394,7 +383,6 @@
   </div>
   <div class="watermark">LORIVTH EQUITY FIRM — PROPRIETARY SYSTEM</div>
 </div>
-</div><!-- end center-column -->
 
 <script>
   const API_URL = 'https://api.openai.com/v1/chat/completions';
