@@ -753,6 +753,95 @@
     margin-bottom: 16px;
   }
 
+
+  .tab-detail-view {
+    display: none;
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+    flex: 1;
+  }
+  .tab-detail-view.open { display: flex; }
+
+  .tab-detail-back {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #555;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-bottom: 4px;
+    transition: color 0.2s;
+    width: fit-content;
+  }
+  .tab-detail-back:hover { color: #FFD700; }
+
+  .tab-detail-title {
+    color: #FFD700;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #222;
+    padding-bottom: 10px;
+  }
+
+  .tab-detail-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .tab-detail-field label {
+    font-size: 10px;
+    color: #888;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .tab-detail-field textarea {
+    background: rgba(26,26,26,0.90);
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #f0f0f0;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.5;
+  }
+  .tab-detail-field textarea:focus { border-color: #FFD700; }
+  .tab-detail-field textarea::placeholder { color: #444; }
+
+  .tab-detail-save {
+    background: rgba(255,215,0,0.12);
+    border: 1px solid #FFD700;
+    color: #FFD700;
+    border-radius: 8px;
+    padding: 9px;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+    margin-top: 4px;
+  }
+  .tab-detail-save:hover { background: rgba(255,215,0,0.25); }
+
+  .tab-detail-saved {
+    text-align: center;
+    font-size: 11px;
+    color: #FFD700;
+    opacity: 0;
+    transition: opacity 0.3s;
+    min-height: 14px;
+  }
+
+  .tabs-main-view { display: flex; flex-direction: column; flex: 1; }
+
   .header { position: relative; }
 
 </style>
@@ -1488,12 +1577,14 @@ function loadTabs() {
   renderTabs(tabs);
 }
 
+let currentTabIndex = null;
+
 function renderTabs(tabs) {
   const list = document.getElementById('tabsList');
   list.innerHTML = '';
   tabs.forEach((tab, i) => {
     const div = document.createElement('div');
-    div.className = 'drawer-tab-item' + (i === 0 ? ' active' : '');
+    div.className = 'drawer-tab-item';
     div.innerHTML = `
       <div class="drawer-tab-name">
         <span class="drawer-tab-icon">${tab.icon}</span>
@@ -1503,11 +1594,39 @@ function renderTabs(tabs) {
     `;
     div.addEventListener('click', function(e) {
       if (e.target.classList.contains('drawer-tab-delete')) return;
-      document.querySelectorAll('.drawer-tab-item').forEach(el => el.classList.remove('active'));
-      div.classList.add('active');
+      openTabDetail(i);
     });
     list.appendChild(div);
   });
+}
+
+function openTabDetail(index) {
+  const tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
+  const tab = tabs[index];
+  currentTabIndex = index;
+  document.getElementById('tabDetailTitle').textContent = tab.icon + '  ' + tab.name;
+  document.getElementById('tabDetailTool').value = tab.tool || '';
+  document.getElementById('tabDetailStrat').value = tab.strat || '';
+  document.getElementById('tabDetailSaved').style.opacity = '0';
+  document.getElementById('tabsMainView').style.display = 'none';
+  document.getElementById('tabDetailView').classList.add('open');
+}
+
+function closeTabDetail() {
+  document.getElementById('tabDetailView').classList.remove('open');
+  document.getElementById('tabsMainView').style.display = 'flex';
+  currentTabIndex = null;
+}
+
+function saveTabDetail() {
+  if (currentTabIndex === null) return;
+  const tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
+  tabs[currentTabIndex].tool = document.getElementById('tabDetailTool').value.trim();
+  tabs[currentTabIndex].strat = document.getElementById('tabDetailStrat').value.trim();
+  localStorage.setItem('lef_tabs', JSON.stringify(tabs));
+  const msg = document.getElementById('tabDetailSaved');
+  msg.style.opacity = '1';
+  setTimeout(() => { msg.style.opacity = '0'; }, 2000);
 }
 
 function addTab() {
@@ -1560,11 +1679,29 @@ loadProfile();
     <div class="drawer-header-text">LEF Menu</div>
   </div>
 
-  <div class="drawer-section">Tabs</div>
-  <div id="tabsList"></div>
+  <!-- Main tabs list -->
+  <div class="tabs-main-view" id="tabsMainView">
+    <div class="drawer-section">Tabs</div>
+    <div id="tabsList"></div>
+    <div style="padding: 12px 16px;">
+      <button class="add-tab-btn" onclick="addTab()">+ Add Tab</button>
+    </div>
+  </div>
 
-  <div style="padding: 12px 16px;">
-    <button class="add-tab-btn" onclick="addTab()">+ Add Tab</button>
+  <!-- Tab detail view -->
+  <div class="tab-detail-view" id="tabDetailView">
+    <div class="tab-detail-back" onclick="closeTabDetail()">← Back</div>
+    <div class="tab-detail-title" id="tabDetailTitle"></div>
+    <div class="tab-detail-field">
+      <label>Tool</label>
+      <textarea id="tabDetailTool" placeholder="Describe what this tool or concept is..."></textarea>
+    </div>
+    <div class="tab-detail-field">
+      <label>Strat</label>
+      <textarea id="tabDetailStrat" placeholder="How do YOU personally use this? Your edge, your rules, your triggers..."></textarea>
+    </div>
+    <button class="tab-detail-save" onclick="saveTabDetail()">Save</button>
+    <div class="tab-detail-saved" id="tabDetailSaved">Saved ✓</div>
   </div>
 
   <div class="drawer-footer">LORIVTH EQUITY FIRM · ALFRED v1</div>
