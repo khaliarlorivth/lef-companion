@@ -593,11 +593,11 @@
   .side-drawer {
     position: fixed;
     top: 0;
-    left: -280px;
+    right: -280px;
     width: 260px;
     height: 100%;
     background: rgba(10, 10, 10, 0.97);
-    border-right: 1px solid #FFD700;
+    border-left: 1px solid #FFD700;
     z-index: 500;
     transition: left 0.3s ease;
     display: flex;
@@ -605,7 +605,7 @@
     padding: 0;
     overflow-y: auto;
   }
-  .side-drawer.open { left: 0; }
+  .side-drawer.open { right: 0; }
 
   .drawer-overlay {
     display: none;
