@@ -339,6 +339,7 @@
   <div class="header-text">
     <div class="header-title">Alfred</div>
     <div class="header-sub">LEF Trading Companion</div>
+    <button onclick="if(confirm('Clear chat history?')){localStorage.removeItem(\'lef_alfred_history\');location.reload();}" style="background:transparent;border:none;color:#444;font-size:10px;cursor:pointer;padding:2px 6px;border-radius:4px;" title="Clear history">✕ Clear</button>
   </div>
   <div class="status-dot"></div>
 </div>
@@ -404,7 +405,26 @@ When an image is provided, read it as a trading chart — identify indicators, k
 
 You can talk about anything — trading, life, whatever the team brings. Stay real, stay sharp, stay Alfred.`;
 
-  let conversationHistory = [];
+  // Load conversation history from localStorage
+  const STORAGE_KEY = 'lef_alfred_history';
+  const MAX_STORED = 40; // keep last 40 messages to avoid token bloat
+
+  function loadHistory() {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch(e) { return []; }
+  }
+
+  function saveHistory(history) {
+    try {
+      // Only store text messages (not image base64 to save space)
+      const toSave = history.filter(m => typeof m.content === 'string').slice(-MAX_STORED);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    } catch(e) {}
+  }
+
+  let conversationHistory = loadHistory();
   let pendingImageBase64 = null;
   let pendingImageMime = null;
 
@@ -543,6 +563,27 @@ You can talk about anything — trading, life, whatever the team brings. Stay re
       mediaRecorder.stop();
     });
   }
+
+
+  // ─── Restore chat from localStorage ───
+  function restoreChat() {
+    const history = loadHistory();
+    if (history.length === 0) return;
+    // Clear welcome message
+    const area = document.getElementById('chatArea');
+    area.innerHTML = '';
+    // Add a session divider
+    const divider = document.createElement('div');
+    divider.style = 'text-align:center;font-size:10px;color:#444;letter-spacing:1px;padding:8px 0;';
+    divider.textContent = '— PREVIOUS SESSION RESTORED —';
+    area.appendChild(divider);
+    history.forEach(msg => {
+      if (msg.role === 'user') addMessage(msg.content, 'user');
+      else if (msg.role === 'assistant') addMessage(msg.content, 'alfred');
+    });
+    area.scrollTop = area.scrollHeight;
+  }
+  restoreChat();
 
   // ─── PTT button events ───
   const pttBtn = document.getElementById('pttBtn');
@@ -702,6 +743,7 @@ You can talk about anything — trading, life, whatever the team brings. Stay re
       try { data = await response.json(); } catch(e) { data = {}; }
       const reply = data.choices?.[0]?.message?.content || 'No response received.';
       conversationHistory.push({ role: 'assistant', content: reply });
+      saveHistory(conversationHistory);
       addMessage(reply, 'alfred');
 
     } catch (err) {
