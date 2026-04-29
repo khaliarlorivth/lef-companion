@@ -842,6 +842,79 @@
 
   .tabs-main-view { display: flex; flex-direction: column; flex: 1; }
 
+
+  /* ── Expanded Text Overlay ── */
+  .text-expand-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 490;
+  }
+  .text-expand-overlay.open { display: block; }
+
+  .text-expand-panel {
+    position: fixed;
+    top: 50%;
+    right: 272px;
+    transform: translateY(-50%) scale(0.92);
+    width: min(420px, calc(100vw - 290px));
+    background: rgba(12, 12, 12, 0.98);
+    border: 1px solid #FFD700;
+    border-radius: 14px;
+    padding: 20px;
+    z-index: 491;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.12);
+  }
+  .text-expand-panel.open {
+    display: flex;
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+
+  .text-expand-label {
+    font-size: 10px;
+    color: #FFD700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #222;
+  }
+
+  .text-expand-area {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #f0f0f0;
+    font-size: 22px;
+    font-family: inherit;
+    line-height: 1.6;
+    resize: none;
+    min-height: 200px;
+    width: 100%;
+  }
+  .text-expand-area::placeholder { color: #333; }
+
+  .text-expand-done {
+    align-self: flex-end;
+    background: rgba(255,215,0,0.1);
+    border: 1px solid #FFD700;
+    color: #FFD700;
+    border-radius: 8px;
+    padding: 7px 20px;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+  .text-expand-done:hover { background: rgba(255,215,0,0.22); }
+
   .header { position: relative; }
 
 </style>
@@ -1791,6 +1864,46 @@ async function cloudSavePfp(dataUrl) {
   await cloudSaveProfile();
 }
 
+
+// ── Expanded Text Panel ──
+let _expandTarget = null; // 'tool' or 'strat'
+
+function openExpandPanel(field) {
+  _expandTarget = field;
+  const label = field === 'tool' ? 'Tool' : 'Strat';
+  const sourceId = field === 'tool' ? 'tabDetailTool' : 'tabDetailStrat';
+  const placeholder = field === 'tool'
+    ? 'Describe what this tool or concept is...'
+    : 'How do YOU personally use this? Your edge, your rules, your triggers...';
+
+  document.getElementById('textExpandLabel').textContent = label;
+  const area = document.getElementById('textExpandArea');
+  area.value = document.getElementById(sourceId).value;
+  area.placeholder = placeholder;
+
+  document.getElementById('textExpandOverlay').classList.add('open');
+  const panel = document.getElementById('textExpandPanel');
+  panel.style.display = 'flex';
+  // Trigger transition
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      panel.classList.add('open');
+      area.focus();
+    });
+  });
+}
+
+function closeExpandPanel() {
+  if (!_expandTarget) return;
+  const sourceId = _expandTarget === 'tool' ? 'tabDetailTool' : 'tabDetailStrat';
+  document.getElementById(sourceId).value = document.getElementById('textExpandArea').value;
+  const panel = document.getElementById('textExpandPanel');
+  panel.classList.remove('open');
+  document.getElementById('textExpandOverlay').classList.remove('open');
+  setTimeout(() => { panel.style.display = 'none'; }, 200);
+  _expandTarget = null;
+}
+
 // Load on start
 cloudLoadProfile();
 </script>
@@ -1822,11 +1935,11 @@ cloudLoadProfile();
     <div class="tab-detail-title" id="tabDetailTitle"></div>
     <div class="tab-detail-field">
       <label>Tool</label>
-      <textarea id="tabDetailTool" placeholder="Describe what this tool or concept is..."></textarea>
+      <textarea id="tabDetailTool" placeholder="Click to expand..." readonly onclick="openExpandPanel('tool')" style="cursor:pointer;"></textarea>
     </div>
     <div class="tab-detail-field">
       <label>Strat</label>
-      <textarea id="tabDetailStrat" placeholder="How do YOU personally use this? Your edge, your rules, your triggers..."></textarea>
+      <textarea id="tabDetailStrat" placeholder="Click to expand..." readonly onclick="openExpandPanel('strat')" style="cursor:pointer;"></textarea>
     </div>
     <button class="tab-detail-save" onclick="saveTabDetail()">Save</button>
     <div class="tab-detail-saved" id="tabDetailSaved">Saved ✓</div>
@@ -1847,6 +1960,15 @@ cloudLoadProfile();
     <button class="profile-save-btn" onclick="saveTab()">Create</button>
     <button class="profile-save-btn" style="background:transparent;border-color:#333;color:#555;" onclick="closeTabModal()">Cancel</button>
   </div>
+</div>
+
+
+<!-- Expanded Text Panel -->
+<div class="text-expand-overlay" id="textExpandOverlay" onclick="closeExpandPanel()"></div>
+<div class="text-expand-panel" id="textExpandPanel">
+  <div class="text-expand-label" id="textExpandLabel">Tool</div>
+  <textarea class="text-expand-area" id="textExpandArea" placeholder="Start typing..."></textarea>
+  <button class="text-expand-done" onclick="closeExpandPanel()">Done</button>
 </div>
 
 </body>
