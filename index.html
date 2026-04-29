@@ -117,7 +117,7 @@ body.light-mode {
     font-size: 22px;
     line-height: 1.5;
   }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeIn { from { transform: translateY(6px); } to { transform: translateY(0); } }
   .message.alfred {
     background: rgba(26, 26, 26, 1.0);
     border: 1px solid #FFD700;
@@ -145,6 +145,14 @@ body.light-mode {
   .message-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
   .message.alfred .message-label { color: #FFD700; }
   .message.user .message-label { color: #000 !important; opacity: 1 !important; }
+  /* PERMANENT TEXT LOCK — slider only affects background, never text */
+  .message.user, .message.user * {
+    color: #000000 !important;
+    opacity: 1 !important;
+  }
+  .message.alfred, .message.alfred * {
+    opacity: 1 !important;
+  }
 
   .message img.chart-img {
     max-width: 100%;
@@ -2054,35 +2062,16 @@ function applyFontSize(val, save=true) {
 
 function applyOpacity(val, save=true) {
   const frac = (parseInt(val) / 100).toFixed(2);
-  // Only adjust background alpha — element opacity and text color are never touched
+  // ONLY change background color alpha — never touch opacity or color of text
   document.querySelectorAll('.message.alfred').forEach(el => {
-    el.style.setProperty('background', `rgba(26, 26, 26, ${frac})`, 'important');
-    el.style.removeProperty('opacity');
-    el.style.setProperty('color', 'var(--text-primary)', 'important');
+    el.style.background = `rgba(26, 26, 26, ${frac})`;
   });
   document.querySelectorAll('.message.user').forEach(el => {
-    el.style.setProperty('background', `rgba(255, 215, 0, ${frac})`, 'important');
-    el.style.removeProperty('opacity');
-    el.style.setProperty('color', '#000', 'important');
-    // Force all child elements to stay fully visible
-    el.querySelectorAll('*').forEach(child => {
-      child.style.removeProperty('opacity');
-      child.style.setProperty('color', '#000', 'important');
-    });
+    el.style.background = `rgba(255, 215, 0, ${frac})`;
   });
-  // Re-lock all text to full opacity after background change
-  document.querySelectorAll('.message.alfred').forEach(el => {
-    el.style.setProperty('color', 'var(--text-primary)', 'important');
-    el.querySelectorAll('*').forEach(c => { c.style.removeProperty('opacity'); c.style.setProperty('color', 'var(--text-primary)', 'important'); });
-  });
-  document.querySelectorAll('.message.user').forEach(el => {
-    el.style.setProperty('color', '#000', 'important');
-    el.querySelectorAll('*').forEach(c => { c.style.removeProperty('opacity'); c.style.setProperty('color', '#000', 'important'); });
-  });
-  // Sync slider UI
   const slider = document.getElementById('settingOpacity');
-  if (slider) slider.value = val;
   const lbl = document.getElementById('settingOpacityVal');
+  if (slider) slider.value = val;
   if (lbl) lbl.textContent = val + '%';
   if (save) localStorage.setItem('lef_setting_opacity', val);
 }
