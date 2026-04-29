@@ -1992,7 +1992,7 @@ function loadSettingsFromStorage() {
   if (themeLight) themeLight.classList.toggle('active', theme === 'light');
   if (themeDark) themeDark.classList.toggle('active', theme === 'dark');
   const fs = localStorage.getItem('lef_setting_fontSize') || '22';
-  const op = localStorage.getItem('lef_setting_opacity') || '60';
+  const op = localStorage.getItem('lef_setting_opacity') || '100';
   const con = localStorage.getItem('lef_setting_constellation') !== 'false';
   const rl = localStorage.getItem('lef_setting_responseLen') || '600';
   const mm = localStorage.getItem('lef_setting_micMode') || 'ptt';
@@ -2024,7 +2024,7 @@ function applyFontSize(val, save=true) {
 
 function applyOpacity(val, save=true) {
   const frac = (parseInt(val) / 100).toFixed(2);
-  document.querySelectorAll('.message.user, .message.alfred').forEach(el => el.style.opacity = frac);
+  // Bubbles are always full brightness — opacity slider does not dim them
   const body = document.querySelector('.chat-body');
   if (body) body.style.opacity = frac;
   const lbl = document.getElementById('settingOpacityVal');
