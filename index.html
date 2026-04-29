@@ -2009,7 +2009,11 @@ function loadSettingsFromStorage() {
   document.getElementById('settingMicMode').value = mm;
 
   applyFontSize(fs, false);
-  applyOpacity(op, false);
+  // Just sync slider position and label — don't dim bubbles on load
+  const opSlider = document.getElementById('settingOpacity');
+  const opLabel = document.getElementById('settingOpacityVal');
+  if (opSlider) opSlider.value = op;
+  if (opLabel) opLabel.textContent = op + '%';
   applyConstellation(con, false);
   applyResponseLen(rl, false);
   applyMicMode(mm, false);
@@ -2036,6 +2040,9 @@ function applyOpacity(val, save=true) {
     el.style.background = `rgba(255, 215, 0, ${frac})`;
     el.style.opacity = '';
   });
+  // Sync slider UI
+  const slider = document.getElementById('settingOpacity');
+  if (slider) slider.value = val;
   const lbl = document.getElementById('settingOpacityVal');
   if (lbl) lbl.textContent = val + '%';
   if (save) localStorage.setItem('lef_setting_opacity', val);
