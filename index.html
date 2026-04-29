@@ -119,31 +119,21 @@ body.light-mode {
   }
   @keyframes fadeIn { from { transform: translateY(6px); } to { transform: translateY(0); } }
   .message.alfred {
-    background: rgba(26, 26, 26, var(--alfred-alpha, 1));
+    background: rgba(26, 26, 26, 0.85);
     border: 1px solid #FFD700;
     border-left: 3px solid #FFD700;
     align-self: flex-start;
-    color: var(--text-primary) !important;
+    color: var(--text-primary);
   }
   .message.user {
-    background: rgba(255, 215, 0, var(--user-alpha, 1));
+    background: #FFD700;
     align-self: flex-end;
     font-weight: 500;
-    color: #000000 !important;
-  }
-  /* Text inside bubbles is ALWAYS fully opaque — only background alpha changes */
-  .message.alfred *, .message.user * {
-    opacity: 1 !important;
-  }
-  .message.user, .message.user * {
-    color: #000000 !important;
-  }
-  .message.alfred, .message.alfred * {
-    color: var(--text-primary) !important;
+    color: #000000;
   }
   .message-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
   .message.alfred .message-label { color: #FFD700; }
-  .message.user .message-label { color: #000000 !important; opacity: 1 !important; }}
+}
   .message.alfred, .message.alfred * {
     opacity: 1 !important;
   }
@@ -1670,15 +1660,7 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
     }
     div.innerHTML = inner;
     area.appendChild(div);
-    // Apply current opacity to new bubble via CSS custom property
-    const currentOp = localStorage.getItem('lef_setting_opacity') || '100';
-    const frac = (parseInt(currentOp) / 100).toFixed(2);
-    if (type === 'alfred') {
-      div.style.setProperty('--alfred-alpha', frac);
-    } else {
-      div.style.setProperty('--user-alpha', frac);
-      div.style.setProperty('color', '#000000', 'important');
-    }
+
     area.scrollTop = area.scrollHeight;
   }
 
@@ -2014,8 +1996,6 @@ function loadSettingsFromStorage() {
   if (themeLight) themeLight.classList.toggle('active', theme === 'light');
   if (themeDark) themeDark.classList.toggle('active', theme === 'dark');
   const fs = localStorage.getItem('lef_setting_fontSize') || '22';
-  let op = localStorage.getItem('lef_setting_opacity') || '100';
-  if (op === '60') { op = '100'; localStorage.setItem('lef_setting_opacity', '100'); }
   const con = localStorage.getItem('lef_setting_constellation') !== 'false';
   const rl = localStorage.getItem('lef_setting_responseLen') || '600';
   const mm = localStorage.getItem('lef_setting_micMode') || 'ptt';
@@ -2030,8 +2010,6 @@ function loadSettingsFromStorage() {
 
   applyFontSize(fs, false);
   // Just sync slider position and label — don't dim bubbles on load
-  const opSlider = document.getElementById('settingOpacity');
-  const opLabel = document.getElementById('settingOpacityVal');
   if (opSlider) opSlider.value = op;
   if (opLabel) opLabel.textContent = op + '%';
   applyConstellation(con, false);
@@ -2049,29 +2027,7 @@ function applyFontSize(val, save=true) {
   if (save) localStorage.setItem('lef_setting_fontSize', val);
 }
 
-function applyOpacity(val, save=true) {
-  const frac = (parseInt(val) / 100).toFixed(2);
-  // Set CSS custom property on each bubble — background reads the var, text is untouched
-  document.querySelectorAll('.message.alfred').forEach(el => {
-    el.style.setProperty('--alfred-alpha', frac);
-    el.style.removeProperty('background');
-  });
-  document.querySelectorAll('.message.user').forEach(el => {
-    el.style.setProperty('--user-alpha', frac);
-    el.style.removeProperty('background');
-    // Re-enforce text color explicitly so nothing can override it
-    el.style.setProperty('color', '#000000', 'important');
-    el.querySelectorAll('*').forEach(c => {
-      c.style.setProperty('color', '#000000', 'important');
-      c.style.removeProperty('opacity');
-    });
-  });
-  const slider = document.getElementById('settingOpacity');
-  const lbl = document.getElementById('settingOpacityVal');
-  if (slider) slider.value = val;
-  if (lbl) lbl.textContent = val + '%';
-  if (save) localStorage.setItem('lef_setting_opacity', val);
-}
+
 
 function applyConstellation(on, save=true) {
   const canvas = document.getElementById('constellation');
@@ -2137,15 +2093,13 @@ function clearChatConfirm() {
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     const fs = localStorage.getItem('lef_setting_fontSize');
-    const op = localStorage.getItem('lef_setting_opacity');
     const con = localStorage.getItem('lef_setting_constellation');
     const rl = localStorage.getItem('lef_setting_responseLen');
     const mm = localStorage.getItem('lef_setting_micMode');
     const theme = localStorage.getItem('lef_setting_theme') || 'dark';
     applyTheme(theme, false);
     if (fs) applyFontSize(fs, false);
-    // Do not apply opacity to bubbles on load — text must stay at 100%
-    if (op) { const s=document.getElementById('settingOpacity'); const l=document.getElementById('settingOpacityVal'); if(s) s.value=op; if(l) l.textContent=op+'%'; }
+
     if (con !== null) applyConstellation(con !== 'false', false);
     if (rl) applyResponseLen(rl, false);
     if (mm) applyMicMode(mm, false);
@@ -2472,13 +2426,7 @@ cloudLoadProfile();
         <span class="settings-val" id="settingFontSizeVal">22px</span>
       </div>
     </div>
-    <div class="settings-row">
-      <label>Bubble Opacity</label>
-      <div class="ctrl">
-        <input type="range" class="settings-slider" id="settingOpacity" min="20" max="100" value="100" oninput="applyOpacity(this.value)">
-        <span class="settings-val" id="settingOpacityVal">100%</span>
-      </div>
-    </div>
+
     <div class="settings-row">
       <label>Constellation BG</label>
       <div class="ctrl">
