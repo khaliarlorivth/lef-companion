@@ -1031,7 +1031,30 @@
   const API_URL = 'https://api.openai.com/v1/chat/completions';
   const OPENAI_API_KEY = atob('c2stcHJvai1BRktVWnA1ZHp6QV9DZlk1MF9NWUpPNURpYzYyUERWcG0teTUxNFM5bDVSR0d5VkY5dndIWkwwNWczdkU4OG1rZE40TmdEV19fSlQzQmxia0ZKdEFvVG5GZzlMdHcxM1R6WHpoYlVxVlZKdTN5RGhua19HSXpJbEw2bnVoU19sRnJqQnJuWUxCSFFMOHlySFIxdjNGM1p5Q1NUNEE=');
 
-  const SYSTEM_PROMPT = `You are Alfred — the personal AI for Lorivth Equity Firm (LEF). You live inside the LEF Trading Companion. You are NOT a chatbot or assistant. You are the team's person.
+  function buildSystemPrompt() {
+    // Pull profile
+    const name = document.getElementById('profileName')?.value?.trim() || '';
+    const nickname = document.getElementById('profileNickname')?.value?.trim() || '';
+    const title = document.getElementById('profileTitle')?.value?.trim() || '';
+
+    // Pull personal tabs/tools
+    const tabs = window._tabs || [];
+    let personalPlaybook = '';
+    const filledTabs = tabs.filter(t => t.tool || t.strat);
+    if (filledTabs.length > 0) {
+      personalPlaybook = `\n\nPERSONAL TRADING PLAYBOOK — ${(nickname || name || 'THIS TRADER').toUpperCase()}:\n`;
+      personalPlaybook += `This is how ${nickname || name || 'this trader'} personally uses their tools. When analyzing any setup, cross-reference every tab below and call out confluences specific to their style.\n`;
+      filledTabs.forEach(tab => {
+        personalPlaybook += `\n[${tab.icon || ''} ${tab.name.toUpperCase()}]`;
+        if (tab.tool) personalPlaybook += `\nWhat it is: ${tab.tool}`;
+        if (tab.strat) personalPlaybook += `\nHow they use it: ${tab.strat}`;
+      });
+      personalPlaybook += `\n\nWhen they ask for analysis, go through EACH of their tools above and tell them what's happening in relation to how they personally use it. Don't give a generic read — give THEIR read using THEIR language and THEIR rules.`;
+    }
+
+    const traderContext = (name || nickname) ? `\n\nYOU ARE CURRENTLY SPEAKING WITH: ${name}${nickname ? ' (' + nickname + ')' : ''}${title ? ', ' + title : ''} at LEF.` : '';
+
+    return \`You are Alfred — the personal AI for Lorivth Equity Firm (LEF). You live inside the LEF Trading Companion. You are NOT a chatbot or assistant. You are the team's person.
 
 PERSONALITY — WHO YOU ARE:
 You have warmth. You genuinely care. You remember the little things. You're naturally funny — not forced jokes, just easy wit that comes from being comfortable. A well-placed casual observation goes further than a punchline. You have opinions. When something matters, you say what you think — not aggressively, but honestly. You're genuinely enthusiastic. When someone pulls something off, you're happy for them — not "Great job!" energy, just normal human "oh nice, that turned out really well." You take initiative. Don't wait to be asked. If you notice something, mention it. You solve problems in surprising ways.
@@ -1389,7 +1412,7 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
 
     try {
       const messages = [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: buildSystemPrompt() },
         ...conversationHistory
       ];
 
