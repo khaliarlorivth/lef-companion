@@ -2404,10 +2404,7 @@ function hideLockScreen() {
   resetLockTimer();
 }
 
-function resetLockTimer() {
-  clearTimeout(lockTimer);
-  lockTimer = setTimeout(showLockScreen, AUTO_LOCK_MINUTES * 60 * 1000);
-}
+function resetLockTimer() { /* no-op — lock only triggers when app is backgrounded */ }
 
 function updatePinDots() {
   for (let i = 0; i < 4; i++) {
@@ -2480,12 +2477,26 @@ function saveNewPin() {
   setTimeout(() => { msg.textContent = ''; }, 3000);
 }
 
-// Reset lock timer on any user interaction
-['click','keydown','touchstart','mousemove'].forEach(evt => {
-  document.addEventListener(evt, resetLockTimer, { passive: true });
+// Track when the app was hidden
+let hiddenAt = null;
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    // App went to background — record the time
+    hiddenAt = Date.now();
+  } else {
+    // App came back — check how long it was gone
+    if (hiddenAt !== null) {
+      const minutesGone = (Date.now() - hiddenAt) / 1000 / 60;
+      if (minutesGone >= AUTO_LOCK_MINUTES) {
+        showLockScreen();
+      }
+      hiddenAt = null;
+    }
+  }
 });
 
-// Show lock screen on load
+// Show lock screen on first load
 window.addEventListener('DOMContentLoaded', () => {
   showLockScreen();
 });
