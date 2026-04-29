@@ -437,10 +437,18 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
 
   function saveHistory(history) {
     try {
-      // Only store text messages (not image base64 to save space)
-      const toSave = history.filter(m => typeof m.content === 'string').slice(-MAX_STORED);
+      // Store last MAX_STORED messages; strip image data from user messages to save space
+      const toSave = history.slice(-MAX_STORED).map(m => {
+        if (typeof m.content === 'string') return m;
+        // If content is array (image message), extract just the text part
+        if (Array.isArray(m.content)) {
+          const textPart = m.content.find(p => p.type === 'text');
+          return { role: m.role, content: textPart ? '[Chart image] ' + textPart.text : '[Chart image]' };
+        }
+        return m;
+      });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-    } catch(e) {}
+    } catch(e) { console.error('saveHistory error:', e); }
   }
 
   let conversationHistory = loadHistory();
@@ -729,6 +737,7 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
     }
 
     conversationHistory.push({ role: 'user', content: userContent });
+    saveHistory(conversationHistory);
     input.value = '';
     input.style.height = 'auto';
     clearImage();
