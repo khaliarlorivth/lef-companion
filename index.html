@@ -349,11 +349,13 @@
     opacity: 0.30;
     pointer-events: none;
     z-index: 0;
-    filter: sepia(1) saturate(4) hue-rotate(5deg) brightness(1.2);
+    filter: brightness(0) saturate(100%) invert(80%) sepia(80%) saturate(500%) hue-rotate(5deg) brightness(1.1);
   }
 </style>
 </head>
 <body>
+
+<img class="chat-watermark" src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="">
 
 <!-- Voice Overlay -->
 <div class="voice-overlay" id="voiceOverlay">
@@ -386,7 +388,6 @@
 </div>
 
 <div class="chat-area" id="chatArea">
-  <img class="chat-watermark" src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="">
   <div class="message alfred">
     <div class="message-label">Alfred</div>
     Charts open. I'm locked in and ready. Drop a chart screenshot or describe your setup — let's get to work 🔥
