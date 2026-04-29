@@ -1572,8 +1572,16 @@ document.getElementById('hamburgerBtn').addEventListener('click', function(e) {
 // ── Tabs System ──
 const TAB_ICONS = ['📌','📋','🗂️','⭐','🔥','💡','📊','🎯','📝','🔍'];
 
+// Global tabs array — single source of truth
+window._tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
+
 function loadTabs() {
-  const tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
+  renderTabs(window._tabs);
+}
+
+function setTabs(tabs) {
+  window._tabs = tabs;
+  localStorage.setItem('lef_tabs', JSON.stringify(tabs));
   renderTabs(tabs);
 }
 
@@ -1601,7 +1609,7 @@ function renderTabs(tabs) {
 }
 
 function openTabDetail(index) {
-  const tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
+  const tabs = window._tabs;
   const tab = tabs[index];
   currentTabIndex = index;
   document.getElementById('tabDetailTitle').textContent = tab.icon + '  ' + tab.name;
@@ -1620,10 +1628,10 @@ function closeTabDetail() {
 
 function saveTabDetail() {
   if (currentTabIndex === null) return;
-  const tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
+  const tabs = window._tabs;
   tabs[currentTabIndex].tool = document.getElementById('tabDetailTool').value.trim();
   tabs[currentTabIndex].strat = document.getElementById('tabDetailStrat').value.trim();
-  localStorage.setItem('lef_tabs', JSON.stringify(tabs));
+  setTabs(tabs);
   cloudSaveTabs();
   const msg = document.getElementById('tabDetailSaved');
   msg.style.opacity = '1';
@@ -1645,26 +1653,23 @@ function closeTabModal() {
 function saveTab() {
   const name = document.getElementById('tabNameInput').value.trim();
   if (!name) return;
-  const tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
+  const tabs = window._tabs;
   const icon = TAB_ICONS[tabs.length % TAB_ICONS.length];
   tabs.push({ name, icon });
-  localStorage.setItem('lef_tabs', JSON.stringify(tabs));
+  setTabs(tabs);
   cloudSaveTabs();
-  renderTabs(tabs);
   closeTabModal();
 }
 
 function deleteTab(e, index) {
   e.stopPropagation();
   if (index === 0) { alert("Can't delete the first tab."); return; }
-  const tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
+  const tabs = window._tabs;
   tabs.splice(index, 1);
-  localStorage.setItem('lef_tabs', JSON.stringify(tabs));
+  setTabs(tabs);
   cloudSaveTabs();
-  renderTabs(tabs);
 }
 
-loadTabs();
 
 
 // ── Cloud Profile Sync ──
@@ -1708,8 +1713,7 @@ async function cloudLoadProfile() {
       if (r.tabs) {
         try {
           const tabs = JSON.parse(r.tabs);
-          localStorage.setItem('lef_tabs', r.tabs);
-          renderTabs(tabs);
+          setTabs(tabs);
         } catch(e) {}
       }
       window._cloudProfileId = r.id;
@@ -1729,7 +1733,7 @@ async function cloudLoadProfile() {
 async function cloudSaveProfile() {
   try {
     const key = getUserKey();
-    const tabs = localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]';
+    const tabs = JSON.stringify(window._tabs || [{"name":"Home","icon":"📌"}]);
     const pfp = localStorage.getItem('lef_pfp') || '';
     const body = {
       user_key: key,
@@ -1766,7 +1770,7 @@ async function cloudSaveProfile() {
 }
 
 async function cloudSaveTabs() {
-  const tabs = localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]';
+  const tabs = JSON.stringify(window._tabs || [{"name":"Home","icon":"📌"}]);
   try {
     const key = getUserKey();
     if (window._cloudProfileId) {
