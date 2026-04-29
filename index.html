@@ -679,6 +679,80 @@
     border-top: 1px solid #1a1a1a;
   }
 
+
+  .add-tab-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed #333;
+    color: #555;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .add-tab-btn:hover { border-color: #FFD700; color: #FFD700; }
+
+  .drawer-tab-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 20px;
+    color: #f0f0f0;
+    font-size: 13px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .drawer-tab-item:hover { background: rgba(255,215,0,0.05); border-left-color: #FFD700; color: #FFD700; }
+  .drawer-tab-item.active { border-left-color: #FFD700; color: #FFD700; background: rgba(255,215,0,0.07); }
+  .drawer-tab-name { display: flex; align-items: center; gap: 10px; }
+  .drawer-tab-icon { font-size: 14px; }
+  .drawer-tab-delete {
+    font-size: 11px;
+    color: #333;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.2s;
+  }
+  .drawer-tab-delete:hover { color: #FF3333; }
+
+  /* Tab Modal */
+  .tab-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 600;
+  }
+  .tab-modal-overlay.open { display: block; }
+  .tab-modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(17,17,17,0.98);
+    border: 1px solid #FFD700;
+    border-radius: 12px;
+    padding: 22px;
+    width: 280px;
+    z-index: 601;
+    animation: fadeIn 0.2s ease;
+  }
+  .tab-modal.open { display: block; }
+  .tab-modal-title {
+    color: #FFD700;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
   .header { position: relative; }
 
 </style>
@@ -1405,6 +1479,71 @@ document.getElementById('hamburgerBtn').addEventListener('click', function(e) {
   openDrawer();
 });
 
+
+// ── Tabs System ──
+const TAB_ICONS = ['📌','📋','🗂️','⭐','🔥','💡','📊','🎯','📝','🔍'];
+
+function loadTabs() {
+  const tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
+  renderTabs(tabs);
+}
+
+function renderTabs(tabs) {
+  const list = document.getElementById('tabsList');
+  list.innerHTML = '';
+  tabs.forEach((tab, i) => {
+    const div = document.createElement('div');
+    div.className = 'drawer-tab-item' + (i === 0 ? ' active' : '');
+    div.innerHTML = `
+      <div class="drawer-tab-name">
+        <span class="drawer-tab-icon">${tab.icon}</span>
+        ${tab.name}
+      </div>
+      <span class="drawer-tab-delete" onclick="deleteTab(event, ${i})" title="Remove">✕</span>
+    `;
+    div.addEventListener('click', function(e) {
+      if (e.target.classList.contains('drawer-tab-delete')) return;
+      document.querySelectorAll('.drawer-tab-item').forEach(el => el.classList.remove('active'));
+      div.classList.add('active');
+    });
+    list.appendChild(div);
+  });
+}
+
+function addTab() {
+  document.getElementById('tabModal').classList.add('open');
+  document.getElementById('tabModalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('tabNameInput').focus(), 100);
+}
+
+function closeTabModal() {
+  document.getElementById('tabModal').classList.remove('open');
+  document.getElementById('tabModalOverlay').classList.remove('open');
+  document.getElementById('tabNameInput').value = '';
+}
+
+function saveTab() {
+  const name = document.getElementById('tabNameInput').value.trim();
+  if (!name) return;
+  const tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
+  const icon = TAB_ICONS[tabs.length % TAB_ICONS.length];
+  tabs.push({ name, icon });
+  localStorage.setItem('lef_tabs', JSON.stringify(tabs));
+  renderTabs(tabs);
+  closeTabModal();
+}
+
+function deleteTab(e, index) {
+  e.stopPropagation();
+  if (index === 0) { alert("Can't delete the first tab."); return; }
+  const tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
+  tabs.splice(index, 1);
+  localStorage.setItem('lef_tabs', JSON.stringify(tabs));
+  renderTabs(tabs);
+}
+
+loadTabs();
+
 // Load on start
 loadProfile();
 </script>
@@ -1421,36 +1560,28 @@ loadProfile();
     <div class="drawer-header-text">LEF Menu</div>
   </div>
 
-  <div class="drawer-section">Tools</div>
-  <div class="drawer-item" onclick="quickSend('Analyze this SRP setup for me'); closeDrawer()">
-    <span class="drawer-icon">📊</span> SRP Check
-  </div>
-  <div class="drawer-item" onclick="quickSend('What golden levels should I watch right now?'); closeDrawer()">
-    <span class="drawer-icon">🎯</span> Golden Levels
-  </div>
-  <div class="drawer-item" onclick="quickSend('MFI reading — am I in premium or discount?'); closeDrawer()">
-    <span class="drawer-icon">📈</span> MFI Read
-  </div>
-  <div class="drawer-item" onclick="quickSend('Give me a pre-trade checklist for my current setup'); closeDrawer()">
-    <span class="drawer-icon">✅</span> Pre-Trade Checklist
-  </div>
-  <div class="drawer-item" onclick="quickSend('Give me a session debrief and grade my trading today'); closeDrawer()">
-    <span class="drawer-icon">📝</span> Session Debrief
-  </div>
+  <div class="drawer-section">Tabs</div>
+  <div id="tabsList"></div>
 
-  <div class="drawer-divider"></div>
-  <div class="drawer-section">Settings</div>
-  <div class="drawer-item" onclick="document.getElementById('profileDropdown').classList.toggle('open'); closeDrawer()">
-    <span class="drawer-icon">👤</span> My Profile
-  </div>
-  <div class="drawer-item" onclick="document.getElementById('chartFileInput').click(); closeDrawer()">
-    <span class="drawer-icon">📷</span> Upload Chart
-  </div>
-  <div class="drawer-item" onclick="if(confirm('Clear chat history?')){localStorage.removeItem('lef_alfred_history');location.reload();}; closeDrawer()">
-    <span class="drawer-icon">🗑️</span> Clear Chat
+  <div style="padding: 12px 16px;">
+    <button class="add-tab-btn" onclick="addTab()">+ Add Tab</button>
   </div>
 
   <div class="drawer-footer">LORIVTH EQUITY FIRM · ALFRED v1</div>
+</div>
+
+<!-- Add Tab Modal -->
+<div class="tab-modal-overlay" id="tabModalOverlay" onclick="closeTabModal()"></div>
+<div class="tab-modal" id="tabModal">
+  <div class="tab-modal-title">New Tab</div>
+  <div class="profile-field" style="margin-bottom:12px;">
+    <label>Tab Name</label>
+    <input type="text" id="tabNameInput" placeholder="e.g. My Watchlist, Notes..." maxlength="30" onkeydown="if(event.key==='Enter')saveTab()">
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="profile-save-btn" onclick="saveTab()">Create</button>
+    <button class="profile-save-btn" style="background:transparent;border-color:#333;color:#555;" onclick="closeTabModal()">Cancel</button>
+  </div>
 </div>
 
 </body>
