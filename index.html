@@ -119,14 +119,16 @@ body.light-mode {
   }
   @keyframes fadeIn { from { transform: translateY(6px); } to { transform: translateY(0); } }
   .message.alfred {
-    background: rgba(26, 26, 26, 0.85);
+    --alfred-bg-alpha: 0.85;
+    background: rgba(26, 26, 26, var(--alfred-bg-alpha));
     border: 1px solid #FFD700;
     border-left: 3px solid #FFD700;
     align-self: flex-start;
     color: var(--text-primary);
   }
   .message.user {
-    background: #FFD700;
+    --user-bg-alpha: 1;
+    background: rgba(255, 215, 0, var(--user-bg-alpha));
     align-self: flex-end;
     font-weight: 500;
     color: #000000;
@@ -1659,6 +1661,11 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
       inner += escapeHtml(text);
     }
     div.innerHTML = inner;
+    // Set background alpha on new bubble — CSS var only, text is untouched
+    const savedOp = localStorage.getItem('lef_setting_opacity');
+    const alpha = savedOp ? (parseInt(savedOp) / 100).toFixed(2) : (type === 'alfred' ? '0.85' : '1');
+    if (type === 'alfred') div.style.setProperty('--alfred-bg-alpha', alpha);
+    else div.style.setProperty('--user-bg-alpha', alpha);
     area.appendChild(div);
 
     area.scrollTop = area.scrollHeight;
@@ -2017,6 +2024,22 @@ function loadSettingsFromStorage() {
   applyMicMode(mm, false);
 }
 
+function applyOpacity(val, save=true) {
+  const frac = (parseInt(val) / 100).toFixed(2);
+  // Only change the background alpha CSS variable — text color and opacity are NEVER touched
+  document.querySelectorAll('.message.alfred').forEach(el => {
+    el.style.setProperty('--alfred-bg-alpha', frac);
+  });
+  document.querySelectorAll('.message.user').forEach(el => {
+    el.style.setProperty('--user-bg-alpha', frac);
+  });
+  const slider = document.getElementById('settingOpacity');
+  const lbl = document.getElementById('settingOpacityVal');
+  if (slider) slider.value = val;
+  if (lbl) lbl.textContent = val + '%';
+  if (save) localStorage.setItem('lef_setting_opacity', val);
+}
+
 function applyFontSize(val, save=true) {
   document.documentElement.style.setProperty('--chat-font-size', val + 'px');
   document.querySelector('.chat-area') && (document.querySelector('.chat-area').style.fontSize = val + 'px');
@@ -2098,6 +2121,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const mm = localStorage.getItem('lef_setting_micMode');
     const theme = localStorage.getItem('lef_setting_theme') || 'dark';
     applyTheme(theme, false);
+    const op = localStorage.getItem('lef_setting_opacity');
+    if (op) applyOpacity(op, false);
     if (fs) applyFontSize(fs, false);
 
     if (con !== null) applyConstellation(con !== 'false', false);
@@ -2419,6 +2444,13 @@ cloudLoadProfile();
   <div class="settings-view" id="settingsView">
 
     <div class="settings-section-label">Appearance</div>
+    <div class="settings-row">
+      <label>Bubble Opacity</label>
+      <div class="ctrl">
+        <input type="range" class="settings-slider" id="settingOpacity" min="20" max="100" value="100" oninput="applyOpacity(this.value)">
+        <span class="settings-val" id="settingOpacityVal">100%</span>
+      </div>
+    </div>
     <div class="settings-row">
       <label>Font Size</label>
       <div class="ctrl">
