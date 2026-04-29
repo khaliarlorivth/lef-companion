@@ -733,7 +733,7 @@ body.light-mode {
     display: none;
     position: fixed;
     inset: 0;
-    background: var(--bg-drawer);
+    background: rgba(0,0,0,0.25);
     z-index: 499;
   }
   .drawer-overlay.open { display: block; }
@@ -2490,8 +2490,7 @@ cloudLoadProfile();
 
   <!-- Drawer nav (bottom) -->
   <div class="drawer-nav" style="border-top: 1px solid var(--border-subtle); padding: 10px 16px; background: var(--bg-drawer);">
-    <button class="drawer-nav-btn active" id="navTabsBtn" onclick="showDrawerView('tabs')">Tabs</button>
-    <button class="drawer-nav-btn" id="navSettingsBtn" onclick="showDrawerView('settings')">⚙ Settings</button>
+    <button class="drawer-nav-btn active" id="navSettingsBtn" onclick="showDrawerView('settings')">⚙ Settings</button>
   </div>
   <div class="drawer-footer">LORIVTH EQUITY FIRM · ALFRED v1</div>
 </div>
