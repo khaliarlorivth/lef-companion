@@ -561,6 +561,68 @@
 
 
   /* ── Hamburger Menu ── */
+
+  /* ── Settings Panel ── */
+  .settings-view { display: none; padding: 0 0 80px 0; }
+  .settings-view.open { display: block; }
+  .settings-section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 2px;
+    color: #FFD700; text-transform: uppercase; padding: 18px 16px 6px;
+    border-bottom: 1px solid rgba(255,215,0,0.1); margin-bottom: 4px;
+  }
+  .settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: #ccc; font-size: 13px;
+  }
+  .settings-row label { flex: 1; color: #ccc; font-size: 13px; }
+  .settings-row .ctrl { display: flex; align-items: center; gap: 8px; }
+  .settings-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 100px; height: 4px; border-radius: 2px;
+    background: #333; outline: none; cursor: pointer;
+  }
+  .settings-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px;
+    border-radius: 50%; background: #FFD700; cursor: pointer;
+  }
+  .settings-val { color: #FFD700; font-size: 12px; width: 34px; text-align: right; }
+  .settings-toggle {
+    position: relative; width: 40px; height: 22px; cursor: pointer;
+  }
+  .settings-toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-track {
+    position: absolute; inset: 0; background: #333; border-radius: 22px;
+    transition: background 0.2s;
+  }
+  .settings-toggle input:checked + .toggle-track { background: #FFD700; }
+  .toggle-thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 16px; height: 16px; background: #fff;
+    border-radius: 50%; transition: transform 0.2s;
+  }
+  .settings-toggle input:checked ~ .toggle-thumb { transform: translateX(18px); }
+  .settings-danger-btn {
+    margin: 16px; width: calc(100% - 32px);
+    padding: 10px; background: transparent;
+    border: 1px solid #FF3333; color: #FF3333;
+    border-radius: 6px; font-size: 13px; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .settings-danger-btn:hover { background: rgba(255,51,51,0.1); }
+  .settings-select {
+    background: #1a1a1a; border: 1px solid #333; color: #ccc;
+    padding: 4px 8px; border-radius: 5px; font-size: 12px; cursor: pointer;
+  }
+  .settings-select:focus { outline: none; border-color: #FFD700; }
+  .drawer-nav-btn {
+    padding: 6px 12px; font-size: 11px; letter-spacing: 1px;
+    background: transparent; border: 1px solid #333; color: #888;
+    border-radius: 5px; cursor: pointer; transition: all 0.2s;
+  }
+  .drawer-nav-btn.active { border-color: #FFD700; color: #FFD700; }
+  .drawer-nav { display: flex; gap: 8px; padding: 12px 16px 8px; }
+
   .hamburger-btn {
     position: absolute;
     top: 12px;
@@ -1441,11 +1503,30 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
 
   // ─── PTT button events ───
   const pttBtn = document.getElementById('pttBtn');
-  pttBtn.addEventListener('mousedown', (e) => { e.preventDefault(); startRecording(); });
-  pttBtn.addEventListener('mouseup', () => stopRecording());
-  pttBtn.addEventListener('mouseleave', () => { if (isPressing) stopRecording(); });
-  pttBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); }, { passive: false });
-  pttBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopRecording(); }, { passive: false });
+  pttBtn.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    if ((typeof _micMode !== 'undefined' ? _micMode : 'ptt') === 'ptt') startRecording();
+  });
+  pttBtn.addEventListener('mouseup', () => {
+    if ((typeof _micMode !== 'undefined' ? _micMode : 'ptt') === 'ptt') stopRecording();
+  });
+  pttBtn.addEventListener('mouseleave', () => {
+    if (isPressing && (typeof _micMode !== 'undefined' ? _micMode : 'ptt') === 'ptt') stopRecording();
+  });
+  pttBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if ((typeof _micMode !== 'undefined' ? _micMode : 'ptt') === 'ptt') { startRecording(); }
+    else { if (!isPressing) startRecording(); else stopRecording(); }
+  }, { passive: false });
+  pttBtn.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    if ((typeof _micMode !== 'undefined' ? _micMode : 'ptt') === 'ptt') stopRecording();
+  }, { passive: false });
+  pttBtn.addEventListener('click', () => {
+    if ((typeof _micMode !== 'undefined' ? _micMode : 'ptt') === 'toggle') {
+      if (!isPressing) startRecording(); else stopRecording();
+    }
+  });
 
   // ─── Spacebar PTT ───
   document.addEventListener('keydown', (e) => {
@@ -1583,7 +1664,7 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + OPENAI_API_KEY
         },
-        body: JSON.stringify({ model: 'gpt-4o', messages, max_tokens: 600, temperature: 0 })
+        body: JSON.stringify({ model: 'gpt-4o', messages, max_tokens: (typeof _maxTokens !== 'undefined' ? _maxTokens : 600), temperature: 0 })
       });
 
       removeTyping();
@@ -1821,6 +1902,133 @@ function closeDrawer() {
   document.getElementById('sideDrawer').classList.remove('open');
   document.getElementById('drawerOverlay').classList.remove('open');
 }
+
+// ── Settings Logic ──
+let _settingsLoaded = false;
+
+function showDrawerView(view) {
+  const tabsMain = document.getElementById('tabsMainView');
+  const tabDetail = document.getElementById('tabDetailView');
+  const settingsView = document.getElementById('settingsView');
+  const navTabs = document.getElementById('navTabsBtn');
+  const navSettings = document.getElementById('navSettingsBtn');
+
+  tabsMain.style.display = view === 'tabs' ? '' : 'none';
+  tabDetail.style.display = 'none';
+  settingsView.classList.toggle('open', view === 'settings');
+  navTabs.classList.toggle('active', view === 'tabs');
+  navSettings.classList.toggle('active', view === 'settings');
+
+  if (view === 'settings' && !_settingsLoaded) {
+    loadSettingsFromStorage();
+    _settingsLoaded = true;
+  }
+}
+
+function loadSettingsFromStorage() {
+  const fs = localStorage.getItem('lef_setting_fontSize') || '22';
+  const op = localStorage.getItem('lef_setting_opacity') || '60';
+  const con = localStorage.getItem('lef_setting_constellation') !== 'false';
+  const rl = localStorage.getItem('lef_setting_responseLen') || '600';
+  const mm = localStorage.getItem('lef_setting_micMode') || 'ptt';
+
+  document.getElementById('settingFontSize').value = fs;
+  document.getElementById('settingFontSizeVal').textContent = fs + 'px';
+  document.getElementById('settingOpacity').value = op;
+  document.getElementById('settingOpacityVal').textContent = op + '%';
+  document.getElementById('settingConstellation').checked = con;
+  document.getElementById('settingResponseLen').value = rl;
+  document.getElementById('settingMicMode').value = mm;
+
+  applyFontSize(fs, false);
+  applyOpacity(op, false);
+  applyConstellation(con, false);
+  applyResponseLen(rl, false);
+  applyMicMode(mm, false);
+}
+
+function applyFontSize(val, save=true) {
+  document.documentElement.style.setProperty('--chat-font-size', val + 'px');
+  document.querySelector('.chat-area') && (document.querySelector('.chat-area').style.fontSize = val + 'px');
+  document.querySelectorAll('.message').forEach(el => el.style.fontSize = val + 'px');
+  document.body.style.fontSize = val + 'px';
+  const lbl = document.getElementById('settingFontSizeVal');
+  if (lbl) lbl.textContent = val + 'px';
+  if (save) localStorage.setItem('lef_setting_fontSize', val);
+}
+
+function applyOpacity(val, save=true) {
+  const frac = (parseInt(val) / 100).toFixed(2);
+  document.querySelectorAll('.message.user, .message.alfred').forEach(el => el.style.opacity = frac);
+  const body = document.querySelector('.chat-body');
+  if (body) body.style.opacity = frac;
+  const lbl = document.getElementById('settingOpacityVal');
+  if (lbl) lbl.textContent = val + '%';
+  if (save) localStorage.setItem('lef_setting_opacity', val);
+}
+
+function applyConstellation(on, save=true) {
+  const canvas = document.getElementById('constellation');
+  if (canvas) canvas.style.display = on ? 'block' : 'none';
+  if (save) localStorage.setItem('lef_setting_constellation', on ? 'true' : 'false');
+}
+
+let _maxTokens = 600;
+function applyResponseLen(val, save=true) {
+  _maxTokens = parseInt(val);
+  if (save) localStorage.setItem('lef_setting_responseLen', val);
+}
+
+let _micMode = 'ptt';
+function applyMicMode(val, save=true) {
+  _micMode = val;
+  if (save) localStorage.setItem('lef_setting_micMode', val);
+  // Update ptt button label/title
+  const btn = document.getElementById('pttBtn');
+  if (btn) btn.title = val === 'ptt' ? 'Hold to speak' : 'Tap to speak';
+}
+
+function exportChat() {
+  const msgs = document.querySelectorAll('.message');
+  let txt = 'LEF Trading Companion — Chat Export\n' + new Date().toLocaleString() + '\n\n';
+  msgs.forEach(m => {
+    const label = m.querySelector('.message-label')?.textContent || '';
+    const body = m.querySelector('div:not(.message-label)')?.textContent || m.textContent.replace(label, '').trim();
+    if (label) txt += label + ': ' + body.trim() + '\n\n';
+  });
+  const blob = new Blob([txt], {type: 'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'lef-chat-' + Date.now() + '.txt';
+  a.click();
+}
+
+function clearChatConfirm() {
+  if (!confirm('Clear all chat history? This cannot be undone.')) return;
+  localStorage.removeItem('lef_alfred_history');
+  localStorage.removeItem('lef_session_id');
+  conversationHistory = [];
+  document.getElementById('chatArea').innerHTML = '';
+  addMessage('Chat cleared. Ready when you are.', 'alfred');
+  closeDrawer();
+}
+
+// Apply settings on page load
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const fs = localStorage.getItem('lef_setting_fontSize');
+    const op = localStorage.getItem('lef_setting_opacity');
+    const con = localStorage.getItem('lef_setting_constellation');
+    const rl = localStorage.getItem('lef_setting_responseLen');
+    const mm = localStorage.getItem('lef_setting_micMode');
+    if (fs) applyFontSize(fs, false);
+    if (op) applyOpacity(op, false);
+    if (con !== null) applyConstellation(con !== 'false', false);
+    if (rl) applyResponseLen(rl, false);
+    if (mm) applyMicMode(mm, false);
+  }, 200);
+});
+
 document.getElementById('hamburgerBtn').addEventListener('click', function(e) {
   e.stopPropagation();
   openDrawer();
@@ -2105,6 +2313,12 @@ cloudLoadProfile();
     <div class="drawer-header-text">LEF Menu</div>
   </div>
 
+  <!-- Drawer nav -->
+  <div class="drawer-nav">
+    <button class="drawer-nav-btn active" id="navTabsBtn" onclick="showDrawerView('tabs')">Tabs</button>
+    <button class="drawer-nav-btn" id="navSettingsBtn" onclick="showDrawerView('settings')">⚙ Settings</button>
+  </div>
+
   <!-- Main tabs list -->
   <div class="tabs-main-view" id="tabsMainView">
     <div class="drawer-section">Tabs</div>
@@ -2128,6 +2342,67 @@ cloudLoadProfile();
     </div>
     <button class="tab-detail-save" onclick="saveTabDetail()">Save</button>
     <div class="tab-detail-saved" id="tabDetailSaved">Saved ✓</div>
+  </div>
+
+  <!-- Settings Panel -->
+  <div class="settings-view" id="settingsView">
+
+    <div class="settings-section-label">Appearance</div>
+    <div class="settings-row">
+      <label>Font Size</label>
+      <div class="ctrl">
+        <input type="range" class="settings-slider" id="settingFontSize" min="14" max="28" value="22" oninput="applyFontSize(this.value)">
+        <span class="settings-val" id="settingFontSizeVal">22px</span>
+      </div>
+    </div>
+    <div class="settings-row">
+      <label>Bubble Opacity</label>
+      <div class="ctrl">
+        <input type="range" class="settings-slider" id="settingOpacity" min="20" max="100" value="60" oninput="applyOpacity(this.value)">
+        <span class="settings-val" id="settingOpacityVal">60%</span>
+      </div>
+    </div>
+    <div class="settings-row">
+      <label>Constellation BG</label>
+      <div class="ctrl">
+        <label class="settings-toggle">
+          <input type="checkbox" id="settingConstellation" checked onchange="applyConstellation(this.checked)">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-section-label">Chat</div>
+    <div class="settings-row">
+      <label>Response Length</label>
+      <div class="ctrl">
+        <select class="settings-select" id="settingResponseLen" onchange="applyResponseLen(this.value)">
+          <option value="300">Short</option>
+          <option value="600" selected>Balanced</option>
+          <option value="1000">Detailed</option>
+        </select>
+      </div>
+    </div>
+    <div class="settings-row">
+      <label>Export Chat Log</label>
+      <div class="ctrl">
+        <button class="drawer-nav-btn" onclick="exportChat()">Download</button>
+      </div>
+    </div>
+    <button class="settings-danger-btn" onclick="clearChatConfirm()">🗑 Clear Chat History</button>
+
+    <div class="settings-section-label">Mic / Voice</div>
+    <div class="settings-row">
+      <label>Input Mode</label>
+      <div class="ctrl">
+        <select class="settings-select" id="settingMicMode" onchange="applyMicMode(this.value)">
+          <option value="ptt" selected>Push to Talk</option>
+          <option value="toggle">Tap to Toggle</option>
+        </select>
+      </div>
+    </div>
+
   </div>
 
   <div class="drawer-footer">LORIVTH EQUITY FIRM · ALFRED v1</div>
