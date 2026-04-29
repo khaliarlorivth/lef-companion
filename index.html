@@ -2031,7 +2031,10 @@ function applyOpacity(val, save=true) {
   });
   document.querySelectorAll('.message.user').forEach(el => {
     el.style.background = `rgba(255, 215, 0, ${frac})`;
-    el.style.color = '#000';
+    el.style.color = 'rgba(0, 0, 0, 1)';
+    el.style.opacity = '1';
+    // Force all child text to stay fully visible
+    el.querySelectorAll('*').forEach(child => { child.style.opacity = '1'; child.style.color = 'inherit'; });
   });
   const body = document.querySelector('.chat-body');
   if (body) body.style.opacity = '';
