@@ -563,7 +563,7 @@
   /* ── Hamburger Menu ── */
 
   /* ── Settings Panel ── */
-  .settings-view { display: none; padding: 0 0 80px 0; }
+  .settings-view { display: none; flex: 1; overflow-y: auto; padding-bottom: 0; }
   .settings-view.open { display: block; }
   .settings-section-label {
     font-size: 10px; font-weight: 700; letter-spacing: 2px;
@@ -652,7 +652,7 @@
     transition: all 0.3s;
   }
 
-  .side-drawer {
+  .side-drawer { display: flex; flex-direction: column;
     position: fixed;
     top: 0;
     right: -280px;
@@ -2313,12 +2313,6 @@ cloudLoadProfile();
     <div class="drawer-header-text">LEF Menu</div>
   </div>
 
-  <!-- Drawer nav -->
-  <div class="drawer-nav">
-    <button class="drawer-nav-btn active" id="navTabsBtn" onclick="showDrawerView('tabs')">Tabs</button>
-    <button class="drawer-nav-btn" id="navSettingsBtn" onclick="showDrawerView('settings')">⚙ Settings</button>
-  </div>
-
   <!-- Main tabs list -->
   <div class="tabs-main-view" id="tabsMainView">
     <div class="drawer-section">Tabs</div>
@@ -2405,6 +2399,11 @@ cloudLoadProfile();
 
   </div>
 
+  <!-- Drawer nav (bottom) -->
+  <div class="drawer-nav" style="border-top: 1px solid rgba(255,215,0,0.15); padding: 10px 16px; background: rgba(0,0,0,0.6);">
+    <button class="drawer-nav-btn active" id="navTabsBtn" onclick="showDrawerView('tabs')">Tabs</button>
+    <button class="drawer-nav-btn" id="navSettingsBtn" onclick="showDrawerView('settings')">⚙ Settings</button>
+  </div>
   <div class="drawer-footer">LORIVTH EQUITY FIRM · ALFRED v1</div>
 </div>
 
