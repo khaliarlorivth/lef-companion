@@ -5,11 +5,69 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Alfred — LEF Trading Companion</title>
 <style>
-  html { background: #0a0a0a; }
+:root {
+  --bg-base:       #0a0a0a;
+  --bg-body:       transparent;
+  --bg-panel:      rgba(17,17,17,0.60);
+  --bg-input:      rgba(15,15,15,0.80);
+  --bg-drawer:     rgba(10,10,10,0.97);
+  --bg-card:       rgba(20,20,20,0.95);
+  --bg-row:        var(--bg-row);
+  --bg-select:     #1a1a1a;
+  --bg-btn:        #111;
+  --bg-star:       #FFD700;
+
+  --text-primary:  #f0f0f0;
+  --text-secondary:#888888;
+  --text-muted:    #ccc;
+
+  --border-subtle: rgba(255,215,0,0.12);
+  --border-row:    var(--bg-row);
+  --border-input:  #333;
+
+  --bubble-user-bg:   rgba(255,215,0,0.08);
+  --bubble-alfred-bg: var(--bg-row);
+  --bubble-user-border:   rgba(255,215,0,0.25);
+  --bubble-alfred-border: rgba(255,255,255,0.07);
+
+  --toggle-off: #333;
+  --scrollbar-thumb: #222;
+}
+
+body.light-mode {
+  --bg-base:       #f5f5f5;
+  --bg-body:       transparent;
+  --bg-panel:      rgba(255,255,255,0.80);
+  --bg-input:      rgba(245,245,245,0.90);
+  --bg-drawer:     rgba(250,250,250,0.98);
+  --bg-card:       rgba(255,255,255,0.97);
+  --bg-row:        rgba(0,0,0,0.03);
+  --bg-select:     #ffffff;
+  --bg-btn:        #f0f0f0;
+  --bg-star:       #b8860b;
+
+  --text-primary:  #0a0a0a;
+  --text-secondary:#555555;
+  --text-muted:    #333333;
+
+  --border-subtle: rgba(0,0,0,0.12);
+  --border-row:    rgba(0,0,0,0.06);
+  --border-input:  #bbb;
+
+  --bubble-user-bg:   rgba(255,215,0,0.15);
+  --bubble-alfred-bg: rgba(0,0,0,0.05);
+  --bubble-user-border:   rgba(180,150,0,0.35);
+  --bubble-alfred-border: rgba(0,0,0,0.10);
+
+  --toggle-off: #ccc;
+  --scrollbar-thumb: #ccc;
+}
+
+  html { background: var(--bg-base); }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     background: transparent;
-    color: #f0f0f0;
+    color: var(--text-primary);
     font-family: Arial, sans-serif;
     height: 100vh;
     display: flex;
@@ -17,7 +75,7 @@
     overflow: hidden;
   }
   .header {
-    background: rgba(17, 17, 17, 0.60);
+    background: var(--bg-panel);
     border-bottom: 1px solid #FFD700;
     padding: 10px 16px;
     display: flex;
@@ -28,7 +86,7 @@
   .header img { width: 32px; height: 32px; border-radius: 50%; }
   .header-text { flex: 1; }
   .header-title { font-size: 13px; font-weight: 700; color: #FFD700; letter-spacing: 2px; text-transform: uppercase; }
-  .header-sub { font-size: 10px; color: #888; letter-spacing: 1px; }
+  .header-sub { font-size: 10px; color: var(--text-secondary); letter-spacing: 1px; }
   .status-dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; animation: pulse 2s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
@@ -44,7 +102,7 @@
     background: transparent;
   }
   .chat-area::-webkit-scrollbar { width: 4px; }
-  .chat-area::-webkit-scrollbar-track { background: rgba(17, 17, 17, 0.60); }
+  .chat-area::-webkit-scrollbar-track { background: var(--bg-panel); }
   .chat-area::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.60); border-radius: 2px; }
 
 
@@ -64,7 +122,7 @@
     border: 1px solid #FFD700;
     border-left: 3px solid #FFD700;
     align-self: flex-start;
-    color: #f0f0f0;
+    color: var(--text-primary);
   }
   .message.user {
     background: rgba(255, 215, 0, 0.60);
@@ -72,7 +130,7 @@
     align-self: flex-end;
     font-weight: 500;
   }
-  .message-label { font-size: 10px; color: #888; margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
+  .message-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
   .message.alfred .message-label { color: #FFD700; }
   .message.user .message-label { color: #000; opacity: 0.6; }
 
@@ -124,7 +182,7 @@
   .voice-overlay.active { display: flex; }
 
   .voice-status-label {
-    color: #888;
+    color: var(--text-secondary);
     font-size: 11px;
     letter-spacing: 3px;
     text-transform: uppercase;
@@ -158,9 +216,9 @@
   .ptt-btn {
     width: 120px; height: 120px;
     border-radius: 50%;
-    background: #222;
+    background: var(--scrollbar-thumb);
     border: 3px solid #444;
-    color: #888;
+    color: var(--text-secondary);
     font-size: 42px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
@@ -219,14 +277,14 @@
   .voice-send-btn.visible { display: block; }
   .voice-cancel-btn {
     background: transparent;
-    border: 1px solid #333;
+    border: 1px solid var(--border-input);
     color: #555;
     border-radius: 8px;
     padding: 10px 24px;
     font-size: 22px;
     cursor: pointer;
   }
-  .voice-cancel-btn:hover { border-color: #666; color: #888; }
+  .voice-cancel-btn:hover { border-color: #666; color: var(--text-secondary); }
 
   .typing {
     display: flex;
@@ -246,7 +304,7 @@
   @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
 
   .input-area {
-    background: rgba(17, 17, 17, 0.60);
+    background: var(--bg-panel);
     border-top: 1px solid #333;
     padding: 6px 16px;
     flex-shrink: 0;
@@ -255,10 +313,10 @@
   .input-box {
     flex: 1;
     background: rgba(26, 26, 26, 0.60);
-    border: 1px solid #333;
+    border: 1px solid var(--border-input);
     border-radius: 10px;
     padding: 10px 14px;
-    color: #f0f0f0;
+    color: var(--text-primary);
     font-size: 22px;
     font-family: inherit;
     resize: none;
@@ -273,8 +331,8 @@
 
   .icon-btn {
     background: rgba(26, 26, 26, 0.60);
-    color: #888;
-    border: 1px solid #333;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-input);
     border-radius: 10px;
     width: 42px; height: 42px;
     cursor: pointer;
@@ -303,8 +361,8 @@
   .quick-actions { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
   .quick-btn {
     background: rgba(26, 26, 26, 0.60);
-    border: 1px solid #333;
-    color: #888;
+    border: 1px solid var(--border-input);
+    color: var(--text-secondary);
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 11px;
@@ -417,7 +475,7 @@
     top: 58px;
     right: 16px;
     width: 280px;
-    background: rgba(17, 17, 17, 0.95);
+    background: var(--bg-panel);
     border: 1px solid #FFD700;
     border-radius: 12px;
     padding: 18px;
@@ -451,10 +509,10 @@
   }
   .profile-field input {
     background: rgba(26,26,26,0.80);
-    border: 1px solid #333;
+    border: 1px solid var(--border-input);
     border-radius: 7px;
     padding: 7px 10px;
-    color: #f0f0f0;
+    color: var(--text-primary);
     font-size: 14px;
     font-family: inherit;
     outline: none;
@@ -568,19 +626,19 @@
   .settings-section-label {
     font-size: 10px; font-weight: 700; letter-spacing: 2px;
     color: #FFD700; text-transform: uppercase; padding: 18px 16px 6px;
-    border-bottom: 1px solid rgba(255,215,0,0.1); margin-bottom: 4px;
+    border-bottom: 1px solid var(--border-subtle); margin-bottom: 4px;
   }
   .settings-row {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
-    color: #ccc; font-size: 13px;
+    padding: 12px 16px; border-bottom: 1px solid var(--bg-row);
+    color: var(--text-muted); font-size: 13px;
   }
-  .settings-row label { flex: 1; color: #ccc; font-size: 13px; }
+  .settings-row label { flex: 1; color: var(--text-muted); font-size: 13px; }
   .settings-row .ctrl { display: flex; align-items: center; gap: 8px; }
   .settings-slider {
     -webkit-appearance: none; appearance: none;
     width: 100px; height: 4px; border-radius: 2px;
-    background: #333; outline: none; cursor: pointer;
+    background: var(--toggle-off); outline: none; cursor: pointer;
   }
   .settings-slider::-webkit-slider-thumb {
     -webkit-appearance: none; width: 14px; height: 14px;
@@ -592,7 +650,7 @@
   }
   .settings-toggle input { opacity: 0; width: 0; height: 0; }
   .toggle-track {
-    position: absolute; inset: 0; background: #333; border-radius: 22px;
+    position: absolute; inset: 0; background: var(--toggle-off); border-radius: 22px;
     transition: background 0.2s;
   }
   .settings-toggle input:checked + .toggle-track { background: #FFD700; }
@@ -611,13 +669,13 @@
   }
   .settings-danger-btn:hover { background: rgba(255,51,51,0.1); }
   .settings-select {
-    background: #1a1a1a; border: 1px solid #333; color: #ccc;
+    background: var(--bg-select); border: 1px solid var(--border-input); color: var(--text-muted);
     padding: 4px 8px; border-radius: 5px; font-size: 12px; cursor: pointer;
   }
   .settings-select:focus { outline: none; border-color: #FFD700; }
   .drawer-nav-btn {
     padding: 6px 12px; font-size: 11px; letter-spacing: 1px;
-    background: transparent; border: 1px solid #333; color: #888;
+    background: transparent; border: 1px solid var(--border-input); color: var(--text-secondary);
     border-radius: 5px; cursor: pointer; transition: all 0.2s;
   }
   .drawer-nav-btn.active { border-color: #FFD700; color: #FFD700; }
@@ -628,7 +686,7 @@
     top: 12px;
     right: 62px;
     background: rgba(26, 26, 26, 0.80);
-    border: 1px solid #333;
+    border: 1px solid var(--border-input);
     border-radius: 8px;
     width: 38px;
     height: 38px;
@@ -658,7 +716,7 @@
     right: -280px;
     width: 260px;
     height: 100%;
-    background: rgba(10, 10, 10, 0.97);
+    background: var(--bg-drawer);
     border-left: 1px solid #FFD700;
     z-index: 500;
     transition: left 0.3s ease;
@@ -673,7 +731,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: var(--bg-drawer);
     z-index: 499;
   }
   .drawer-overlay.open { display: block; }
@@ -727,7 +785,7 @@
 
   .drawer-divider {
     height: 1px;
-    background: #1a1a1a;
+    background: var(--bg-select);
     margin: 8px 16px;
   }
 
@@ -762,7 +820,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 11px 20px;
-    color: #f0f0f0;
+    color: var(--text-primary);
     font-size: 13px;
     cursor: pointer;
     border-left: 3px solid transparent;
@@ -788,7 +846,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.6);
+    background: var(--bg-drawer);
     z-index: 600;
   }
   .tab-modal-overlay.open { display: block; }
@@ -829,7 +887,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #888;
+    color: var(--text-secondary);
     font-size: 11px;
     letter-spacing: 1.5px;
     text-transform: uppercase;
@@ -862,10 +920,10 @@
   }
   .tab-detail-field textarea {
     background: rgba(26,26,26,0.90);
-    border: 1px solid #333;
+    border: 1px solid var(--border-input);
     border-radius: 8px;
     padding: 10px 12px;
-    color: #f0f0f0;
+    color: var(--text-primary);
     font-size: 13px;
     font-family: inherit;
     resize: vertical;
@@ -951,7 +1009,7 @@
     background: rgba(40, 40, 40, 0.6);
     border: none;
     outline: none;
-    color: #f0f0f0;
+    color: var(--text-primary);
     font-size: 22px;
     font-family: inherit;
     line-height: 1.6;
@@ -983,7 +1041,7 @@
     top: 12px;
     right: 108px;
     background: rgba(26, 26, 26, 0.80);
-    border: 1px solid #333;
+    border: 1px solid var(--border-input);
     border-radius: 8px;
     width: 38px;
     height: 38px;
@@ -1926,6 +1984,12 @@ function showDrawerView(view) {
 }
 
 function loadSettingsFromStorage() {
+  const theme = localStorage.getItem('lef_setting_theme') || 'dark';
+  applyTheme(theme, false);
+  const themeLight = document.getElementById('themeLightBtn');
+  const themeDark = document.getElementById('themeDarkBtn');
+  if (themeLight) themeLight.classList.toggle('active', theme === 'light');
+  if (themeDark) themeDark.classList.toggle('active', theme === 'dark');
   const fs = localStorage.getItem('lef_setting_fontSize') || '22';
   const op = localStorage.getItem('lef_setting_opacity') || '60';
   const con = localStorage.getItem('lef_setting_constellation') !== 'false';
@@ -1971,6 +2035,20 @@ function applyConstellation(on, save=true) {
   const canvas = document.getElementById('constellation');
   if (canvas) canvas.style.display = on ? 'block' : 'none';
   if (save) localStorage.setItem('lef_setting_constellation', on ? 'true' : 'false');
+}
+
+function applyTheme(mode, save=true) {
+  if (mode === 'light') {
+    document.body.classList.add('light-mode');
+  } else {
+    document.body.classList.remove('light-mode');
+  }
+  // Update button states
+  const dark = document.getElementById('themeDarkBtn');
+  const light = document.getElementById('themeLightBtn');
+  if (dark) dark.classList.toggle('active', mode === 'dark');
+  if (light) light.classList.toggle('active', mode === 'light');
+  if (save) localStorage.setItem('lef_setting_theme', mode);
 }
 
 let _maxTokens = 600;
@@ -2021,6 +2099,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const con = localStorage.getItem('lef_setting_constellation');
     const rl = localStorage.getItem('lef_setting_responseLen');
     const mm = localStorage.getItem('lef_setting_micMode');
+    const theme = localStorage.getItem('lef_setting_theme') || 'dark';
+    applyTheme(theme, false);
     if (fs) applyFontSize(fs, false);
     if (op) applyOpacity(op, false);
     if (con !== null) applyConstellation(con !== 'false', false);
@@ -2366,6 +2446,13 @@ cloudLoadProfile();
         </label>
       </div>
     </div>
+    <div class="settings-row">
+      <label>Theme</label>
+      <div class="ctrl">
+        <button class="drawer-nav-btn" id="themeDarkBtn" onclick="applyTheme('dark')" style="padding:5px 10px;">🌙 Dark</button>
+        <button class="drawer-nav-btn" id="themeLightBtn" onclick="applyTheme('light')" style="padding:5px 10px;">☀️ Light</button>
+      </div>
+    </div>
 
     <div class="settings-section-label">Chat</div>
     <div class="settings-row">
@@ -2400,7 +2487,7 @@ cloudLoadProfile();
   </div>
 
   <!-- Drawer nav (bottom) -->
-  <div class="drawer-nav" style="border-top: 1px solid rgba(255,215,0,0.15); padding: 10px 16px; background: rgba(0,0,0,0.6);">
+  <div class="drawer-nav" style="border-top: 1px solid var(--border-subtle); padding: 10px 16px; background: var(--bg-drawer);">
     <button class="drawer-nav-btn active" id="navTabsBtn" onclick="showDrawerView('tabs')">Tabs</button>
     <button class="drawer-nav-btn" id="navSettingsBtn" onclick="showDrawerView('settings')">⚙ Settings</button>
   </div>
