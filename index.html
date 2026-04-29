@@ -1116,7 +1116,21 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
 
   // Load conversation history from localStorage
   const STORAGE_KEY = 'lef_alfred_history';
-  const MAX_STORED = 40; // keep last 40 messages to avoid token bloat
+  const MAX_STORED = 40;
+  const CHAT_API = 'https://api.base44.com/api/apps/69e6c9e3e9328af8a3ecc3e5/entities/CompanionChat';
+  let _chatSessionId = localStorage.getItem('lef_session_id') || ('sess_' + Date.now());
+  localStorage.setItem('lef_session_id', _chatSessionId);
+
+  function stripImages(history) {
+    return history.slice(-MAX_STORED).map(m => {
+      if (typeof m.content === 'string') return m;
+      if (Array.isArray(m.content)) {
+        const textPart = m.content.find(p => p.type === 'text');
+        return { role: m.role, content: textPart ? '[Chart image] ' + textPart.text : '[Chart image]' };
+      }
+      return m;
+    });
+  }
 
   function loadHistory() {
     try {
@@ -1127,21 +1141,48 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
 
   function saveHistory(history) {
     try {
-      // Store last MAX_STORED messages; strip image data from user messages to save space
-      const toSave = history.slice(-MAX_STORED).map(m => {
-        if (typeof m.content === 'string') return m;
-        // If content is array (image message), extract just the text part
-        if (Array.isArray(m.content)) {
-          const textPart = m.content.find(p => p.type === 'text');
-          return { role: m.role, content: textPart ? '[Chart image] ' + textPart.text : '[Chart image]' };
-        }
-        return m;
-      });
+      const toSave = stripImages(history);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-    } catch(e) { console.error('saveHistory error:', e); }
+    } catch(e) {}
+  }
+
+  // Cloud save: push each new message as a CompanionChat record
+  async function cloudSaveMessage(role, content) {
+    try {
+      const text = typeof content === 'string' ? content :
+        (Array.isArray(content) ? (content.find(p=>p.type==='text')?.text || '[image]') : String(content));
+      await fetch(CHAT_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: _chatSessionId, role, content: text, timestamp: new Date().toISOString() })
+      });
+    } catch(e) {}
+  }
+
+  // Cloud load: fetch all messages for this session on startup
+  async function cloudLoadHistory() {
+    try {
+      const res = await fetch(CHAT_API + '?session_id=' + encodeURIComponent(_chatSessionId) + '&_limit=100&_sort=timestamp', {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!res.ok) return null;
+      const records = await res.json();
+      if (!records || !records.length) return null;
+      return records.map(r => ({ role: r.role, content: r.content }));
+    } catch(e) { return null; }
   }
 
   let conversationHistory = loadHistory();
+
+  // On boot: try cloud first, fall back to localStorage
+  (async () => {
+    const cloudHistory = await cloudLoadHistory();
+    if (cloudHistory && cloudHistory.length > conversationHistory.length) {
+      conversationHistory = cloudHistory;
+      saveHistory(conversationHistory);
+      renderMessages();
+    }
+  })();
   let pendingImageBase64 = null;
   let pendingImageMime = null;
 
@@ -1428,6 +1469,7 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
 
     conversationHistory.push({ role: 'user', content: userContent });
     saveHistory(conversationHistory);
+    cloudSaveMessage('user', userContent);
     input.value = '';
     input.style.height = 'auto';
     clearImage();
@@ -1462,6 +1504,7 @@ You can talk about anything — trading, life, strategy, whatever. Stay real, st
       const reply = data.choices?.[0]?.message?.content || 'No response received.';
       conversationHistory.push({ role: 'assistant', content: reply });
       saveHistory(conversationHistory);
+      cloudSaveMessage('assistant', reply);
       addMessage(reply, 'alfred');
 
     } catch (err) {
