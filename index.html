@@ -126,6 +126,15 @@ body.light-mode {
     color: var(--text-primary);
   }
   .message.alfred * { opacity: 1 !important; }
+  /* Lock all bubble text permanently — slider cannot affect words */
+  .message.alfred, .message.alfred *,
+  .message.user, .message.user * {
+    color: inherit;
+  }
+  .message.alfred { color: var(--text-primary) !important; }
+  .message.user { color: #000 !important; }
+  .message.alfred > *:not(.chart-img) { opacity: 1 !important; color: var(--text-primary) !important; }
+  .message.user > *:not(.chart-img) { opacity: 1 !important; color: #000 !important; }
   .message.user {
     background: rgba(255, 215, 0, 1.0);
     color: #000 !important;
@@ -2061,6 +2070,15 @@ function applyOpacity(val, save=true) {
       child.style.setProperty('color', '#000', 'important');
     });
   });
+  // Re-lock all text to full opacity after background change
+  document.querySelectorAll('.message.alfred').forEach(el => {
+    el.style.setProperty('color', 'var(--text-primary)', 'important');
+    el.querySelectorAll('*').forEach(c => { c.style.removeProperty('opacity'); c.style.setProperty('color', 'var(--text-primary)', 'important'); });
+  });
+  document.querySelectorAll('.message.user').forEach(el => {
+    el.style.setProperty('color', '#000', 'important');
+    el.querySelectorAll('*').forEach(c => { c.style.removeProperty('opacity'); c.style.setProperty('color', '#000', 'important'); });
+  });
   // Sync slider UI
   const slider = document.getElementById('settingOpacity');
   if (slider) slider.value = val;
@@ -2140,7 +2158,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const theme = localStorage.getItem('lef_setting_theme') || 'dark';
     applyTheme(theme, false);
     if (fs) applyFontSize(fs, false);
-    if (op) applyOpacity(op, false);
+    // Do not apply opacity to bubbles on load — text must stay at 100%
+    if (op) { const s=document.getElementById('settingOpacity'); const l=document.getElementById('settingOpacityVal'); if(s) s.value=op; if(l) l.textContent=op+'%'; }
     if (con !== null) applyConstellation(con !== 'false', false);
     if (rl) applyResponseLen(rl, false);
     if (mm) applyMicMode(mm, false);
