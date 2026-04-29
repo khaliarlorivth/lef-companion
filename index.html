@@ -919,20 +919,19 @@
   .journal-tab-btn {
     background: transparent;
     border: none;
-    color: #FFD700;
-    border-radius: 0;
-    padding: 0;
-    font-size: 26px;
-    font-weight: 400;
-    letter-spacing: 2px;
-    text-transform: uppercase;
+    padding: 6px;
     cursor: pointer;
-    font-family: Arial, sans-serif;
-    transition: all 0.2s;
-    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 22px;
+    line-height: 1;
+    opacity: 0.75;
+    transition: opacity 0.2s;
   }
   .journal-tab-btn:hover {
-    color: #fff;
+    opacity: 1;
   }
 
   .header { position: relative; }
@@ -966,13 +965,11 @@
 
 <div class="header">
   <button class="hamburger-btn" id="hamburgerBtn" title="Menu"><span></span><span></span><span></span></button>
+  <button class="journal-tab-btn" title="Trade Journal — Coming Soon">📔</button>
   <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF">
   <div class="header-text">
     <div class="header-title">Alfred</div>
-    <div style="display:flex;align-items:center;gap:14px;">
-      <div class="header-sub">LEF Trading Companion</div>
-      <button class="journal-tab-btn" title="Coming Soon">Trade Journal</button>
-    </div>
+    <div class="header-sub">LEF Trading Companion</div>
     <button onclick="if(confirm('Clear chat history?')){localStorage.removeItem(\'lef_alfred_history\');location.reload();}" style="background:transparent;border:none;color:#444;font-size:10px;cursor:pointer;padding:2px 6px;border-radius:4px;" title="Clear history">✕ Clear</button>
   </div>
   <div class="status-dot"></div>
