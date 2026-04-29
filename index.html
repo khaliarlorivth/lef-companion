@@ -119,18 +119,20 @@ body.light-mode {
   }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   .message.alfred {
-    background: rgba(26, 26, 26, 0.95);
+    background: rgba(26, 26, 26, 1.0);
     border: 1px solid #FFD700;
     border-left: 3px solid #FFD700;
     align-self: flex-start;
     color: var(--text-primary);
   }
+  .message.alfred * { opacity: 1 !important; }
   .message.user {
-    background: rgba(255, 215, 0, 0.95);
-    color: #000;
+    background: rgba(255, 215, 0, 1.0);
+    color: #000 !important;
     align-self: flex-end;
     font-weight: 500;
   }
+  .message.user * { color: #000 !important; opacity: 1 !important; }
   .message-label { font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
   .message.alfred .message-label { color: #FFD700; }
   .message.user .message-label { color: #000; opacity: 0.6; }
@@ -1992,7 +1994,8 @@ function loadSettingsFromStorage() {
   if (themeLight) themeLight.classList.toggle('active', theme === 'light');
   if (themeDark) themeDark.classList.toggle('active', theme === 'dark');
   const fs = localStorage.getItem('lef_setting_fontSize') || '22';
-  const op = localStorage.getItem('lef_setting_opacity') || '100';
+  let op = localStorage.getItem('lef_setting_opacity') || '100';
+  if (op === '60') { op = '100'; localStorage.setItem('lef_setting_opacity', '100'); }
   const con = localStorage.getItem('lef_setting_constellation') !== 'false';
   const rl = localStorage.getItem('lef_setting_responseLen') || '600';
   const mm = localStorage.getItem('lef_setting_micMode') || 'ptt';
@@ -2444,8 +2447,8 @@ cloudLoadProfile();
     <div class="settings-row">
       <label>Bubble Opacity</label>
       <div class="ctrl">
-        <input type="range" class="settings-slider" id="settingOpacity" min="20" max="100" value="60" oninput="applyOpacity(this.value)">
-        <span class="settings-val" id="settingOpacityVal">60%</span>
+        <input type="range" class="settings-slider" id="settingOpacity" min="20" max="100" value="100" oninput="applyOpacity(this.value)">
+        <span class="settings-val" id="settingOpacityVal">100%</span>
       </div>
     </div>
     <div class="settings-row">
