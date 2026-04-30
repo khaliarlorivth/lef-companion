@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alfred — LEF Trading Companion</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a0a;
+    color: #f0f0f0;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .header {
+    background: #111;
+    border-bottom: 1px solid #FFD700;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .header img { width: 32px; height: 32px; border-radius: 50%; }
+  .header-text { flex: 1; }
+  .header-title { font-size: 13px; font-weight: 700; color: #FFD700; letter-spacing: 2px; text-transform: uppercase; }
+  .header-sub { font-size: 10px; color: #888; letter-spacing: 1px; }
+  .status-dot { width: 8px; height: 8px; background: #00ff88; border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: #FFD700 #111;
+  }
+  .chat-area::-webkit-scrollbar { width: 4px; }
+  .chat-area::-webkit-scrollbar-track { background: #111; }
+  .chat-area::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 2px; }
+
+  .message {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .message.alfred {
+    background: #1a1a1a;
+    border: 1px solid #FFD700;
+    border-left: 3px solid #FFD700;
+    align-self: flex-start;
+    color: #f0f0f0;
+  }
+  .message.user {
+    background: #FFD700;
+    color: #000;
+    align-self: flex-end;
+    font-weight: 500;
+  }
+  .message-label { font-size: 10px; color: #888; margin-bottom: 4px; letter-spacing: 1px; text-transform: uppercase; }
+  .message.alfred .message-label { color: #FFD700; }
+  .message.user .message-label { color: #000; opacity: 0.6; }
+
+  .message img.chart-img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-top: 8px;
+    border: 1px solid #FFD700;
+    display: block;
+  }
+
+  .img-preview-bar {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: #1a1a1a;
+    border: 1px solid #FFD700;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+  }
+  .img-preview-bar.active { display: flex; }
+  .img-preview-bar img { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid #FFD700; }
+  .img-preview-label { flex: 1; font-size: 11px; color: #FFD700; }
+  .img-preview-remove {
+    background: #FF3333;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    width: 24px; height: 24px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Voice overlay */
+  .voice-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.93);
+    z-index: 100;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    user-select: none;
+  }
+  .voice-overlay.active { display: flex; }
+
+  .voice-status-label {
+    color: #888;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .ptt-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 160px; height: 160px;
+  }
+  .ptt-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid #FF3333;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ptt-ring.animate {
+    animation: ringExpand 1.2s ease-out infinite;
+  }
+  .ptt-ring:nth-child(2) { animation-delay: 0.4s; }
+  .ptt-ring:nth-child(3) { animation-delay: 0.8s; }
+  @keyframes ringExpand {
+    0% { transform: scale(0.75); opacity: 0.7; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+
+  .ptt-btn {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: #222;
+    border: 3px solid #444;
+    color: #888;
+    font-size: 42px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s, color 0.15s;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+    z-index: 1;
+  }
+  .ptt-btn:hover { border-color: #FFD700; color: #FFD700; }
+  .ptt-btn.pressed {
+    background: #FF3333;
+    border-color: #FF3333;
+    color: #fff;
+    transform: scale(0.95);
+  }
+  .ptt-btn.processing {
+    background: #FFD700;
+    border-color: #FFD700;
+    color: #000;
+    font-size: 28px;
+  }
+
+  .ptt-hint {
+    color: #444;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .ptt-hint span { color: #FFD700; }
+
+  .voice-transcript {
+    color: #FFD700;
+    font-size: 14px;
+    max-width: 340px;
+    text-align: center;
+    min-height: 52px;
+    line-height: 1.7;
+    padding: 0 20px;
+  }
+
+  .voice-actions { display: flex; gap: 12px; align-items: center; }
+  .voice-send-btn {
+    background: #FFD700;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 28px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    display: none;
+    transition: background 0.2s;
+  }
+  .voice-send-btn:hover { background: #e6c200; }
+  .voice-send-btn.visible { display: block; }
+  .voice-cancel-btn {
+    background: transparent;
+    border: 1px solid #333;
+    color: #555;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .voice-cancel-btn:hover { border-color: #666; color: #888; }
+
+  .typing {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 14px;
+    background: #1a1a1a;
+    border: 1px solid #FFD700;
+    border-left: 3px solid #FFD700;
+    border-radius: 12px;
+    align-self: flex-start;
+    width: fit-content;
+  }
+  .typing span { width: 6px; height: 6px; background: #FFD700; border-radius: 50%; animation: bounce 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+
+  .input-area {
+    background: #111;
+    border-top: 1px solid #333;
+    padding: 12px 16px;
+    flex-shrink: 0;
+  }
+  .input-row { display: flex; gap: 8px; align-items: flex-end; }
+  .input-box {
+    flex: 1;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #f0f0f0;
+    font-size: 13px;
+    font-family: inherit;
+    resize: none;
+    min-height: 42px;
+    max-height: 100px;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.4;
+  }
+  .input-box:focus { border-color: #FFD700; }
+  .input-box::placeholder { color: #555; }
+
+  .icon-btn {
+    background: #1a1a1a;
+    color: #888;
+    border: 1px solid #333;
+    border-radius: 10px;
+    width: 42px; height: 42px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { border-color: #FFD700; color: #FFD700; }
+
+  .send-btn {
+    background: #FFD700;
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    width: 42px; height: 42px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, transform 0.1s;
+    flex-shrink: 0;
+  }
+  .send-btn:hover { background: #e6c200; }
+  .send-btn:active { transform: scale(0.95); }
+
+  .quick-actions { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .quick-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #888;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .quick-btn:hover { border-color: #FFD700; color: #FFD700; }
+  .watermark { text-align: center; font-size: 9px; color: #333; padding-top: 6px; letter-spacing: 1px; }
+  #chartFileInput { display: none; }
+
+  /* ─── LOCK SCREEN ─── */
+  .lock-screen {
+    position: fixed;
+    inset: 0;
+    background: #0a0a0a;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+  }
+  .lock-screen.hidden { display: none; }
+  .lock-logo { width: 72px; height: 72px; border-radius: 50%; border: 2px solid #FFD700; }
+  .lock-title { color: #FFD700; font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; }
+  .lock-sub { color: #555; font-size: 11px; letter-spacing: 1px; text-align: center; }
+  .lock-input-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 260px; }
+  .lock-input {
+    width: 100%;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: #f0f0f0;
+    font-size: 16px;
+    font-family: inherit;
+    text-align: center;
+    letter-spacing: 2px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .lock-input:focus { border-color: #FFD700; }
+  .lock-input.error { border-color: #FF3333; animation: shake 0.3s ease; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+  .lock-btn {
+    width: 100%;
+    background: #FFD700;
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: background 0.2s;
+  }
+  .lock-btn:hover { background: #e6c200; }
+  .lock-error { color: #FF3333; font-size: 11px; letter-spacing: 1px; min-height: 16px; }
+
+</style>
+</head>
+<body>
+
+<!-- Lock Screen -->
+<div class="lock-screen" id="lockScreen">
+  <img class="lock-logo" src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF">
+  <div class="lock-title">Lorivth Equity Firm</div>
+  <div class="lock-sub">LEF Trading Companion<br>Enter password to continue</div>
+  <div class="lock-input-wrap">
+    <input
+      class="lock-input"
+      id="lockInput"
+      type="password"
+      placeholder="Enter password"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+      onkeydown="lockKeydown(event)"
+    >
+    <button class="lock-btn" onclick="checkLock()">UNLOCK</button>
+    <div class="lock-error" id="lockError"></div>
+  </div>
+</div>
+
+
+<!-- Voice Overlay -->
+<div class="voice-overlay" id="voiceOverlay">
+  <div class="voice-status-label" id="voiceStatusLabel">Push to Talk</div>
+
+  <div class="ptt-wrap">
+    <div class="ptt-ring" id="ring1"></div>
+    <div class="ptt-ring" id="ring2"></div>
+    <div class="ptt-ring" id="ring3"></div>
+    <button class="ptt-btn" id="pttBtn">🎙️</button>
+  </div>
+
+  <div class="ptt-hint">Hold <span>button</span> or hold <span>SPACE</span></div>
+  <div class="voice-transcript" id="voiceTranscript">Hold the button and speak your setup...</div>
+
+  <div class="voice-actions">
+    <button class="voice-send-btn" id="voiceSendBtn" onclick="submitVoice()">Send to Alfred ➤</button>
+    <button class="voice-cancel-btn" onclick="cancelVoice()">Cancel</button>
+  </div>
+</div>
+
+<div class="header">
+  <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF">
+  <div class="header-text">
+    <div class="header-title">Alfred</div>
+    <div class="header-sub">LEF Trading Companion</div>
+  </div>
+  <div class="status-dot"></div>
+</div>
+
+<div class="chat-area" id="chatArea">
+  <div class="message alfred">
+    <div class="message-label">Alfred</div>
+    Charts open. I'm locked in and ready. Drop a chart screenshot or describe your setup — let's get to work 🔥
+  </div>
+</div>
+
+<div class="input-area">
+  <div class="quick-actions">
+    <button class="quick-btn" onclick="quickSend('Analyze this SRP setup for me')">SRP Check</button>
+    <button class="quick-btn" onclick="quickSend('What golden levels should I watch right now?')">Golden Levels</button>
+    <button class="quick-btn" onclick="quickSend('MFI reading — am I in premium or discount?')">MFI Read</button>
+    <button class="quick-btn" onclick="quickSend('FRD sweep check — any setups forming?')">FRD Sweep</button>
+    <button class="quick-btn" onclick="quickSend('Give me the full confluence check on this setup')">Full Confluence</button>
+  </div>
+
+  <div class="img-preview-bar" id="imgPreviewBar">
+    <img id="imgPreviewThumb" src="" alt="chart preview">
+    <div class="img-preview-label">Chart attached — add a note or send now</div>
+    <button class="img-preview-remove" onclick="clearImage()" title="Remove">✕</button>
+  </div>
+
+  <div class="input-row">
+    <button class="icon-btn" onclick="openVoice()" title="Push to talk">🎙️</button>
+    <button class="icon-btn" onclick="document.getElementById('chartFileInput').click()" title="Upload chart screenshot">📊</button>
+    <input type="file" id="chartFileInput" accept="image/*" onchange="handleImageSelect(event)">
+    <textarea
+      class="input-box"
+      id="msgInput"
+      placeholder="Describe your setup or drop a chart..."
+      rows="1"
+      onkeydown="handleKey(event)"
+      oninput="autoResize(this)"
+    ></textarea>
+    <button class="send-btn" onclick="sendMessage()">➤</button>
+  </div>
+  <div class="watermark">LORIVTH EQUITY FIRM — PROPRIETARY SYSTEM</div>
+</div>
+
+<script>
+  const APP_ID = '69e6c9e3e9328af8a3ecc3e5';
+  const API_URL = `https://app.base44.com/api/apps/${APP_ID}/ai/chat`;
+  const TRANSCRIBE_URL = `https://alfred-a3ecc3e5.base44.app/api/functions/transcribeAudio`;
+
+  const SYSTEM_PROMPT = `You are Alfred, the AI trading assistant for Lorivth Equity Firm (LEF). You are embedded in the LEF Trading Companion app used by the team during live trading sessions.
+
+You are an expert in the full LEF proprietary trading system:
+
+1. FRDv2.1 — Three Bollinger bands: upper (overbought/resistance), lower (oversold/support), middle (critical decision zone). High volume can invalidate band reversals.
+2. Khema/Dema — Trend shift indicator. Vbuckle = false signal, stay out.
+3. Khema/Tema — STRICTLY scalping tool. 10-20 points only. Never use for big moves.
+4. Golden Levels — pD.H, pD.L, pD.EQ, prior week/month high/low, weekly open, midnight open, 9:30 NY open.
+5. FRD Sweeps — Orange dots = bearish, purple/black dots = bullish. Entry inside the forward candle wick past backing candle trendline.
+6. MFI (Money Flow Index) — Red zone = overbought, green zone = oversold. Background color = trend bias. Signals are supplementary only.
+7. SRP (Swing Reversal Pattern) — Main entry trigger. Price sweeps a level but candle BODY closes back within range. Most powerful on 5m + 15m + 25m stacked with golden level + MFI confirmation.
+
+Timeframe hierarchy: Daily > 4h > 1h > 25m > 15m > 5m > 1m (entry only). Never act on 1m unless 5m confirms.
+
+When an image is provided, analyze it as a trading chart. Identify: indicator readings, key levels visible, trend direction, any SRP/FRD signals, and give a clear actionable read. Respond in plain text only. No markdown. Be concise and direct like a trading partner sitting at the desk.`;
+
+  let conversationHistory = [];
+  let pendingImageBase64 = null;
+  let pendingImageMime = null;
+
+  // ─── PTT state ───
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let isPressing = false;
+  let spaceHeld = false;
+  let voiceTranscriptText = '';
+
+  function openVoice() {
+    voiceTranscriptText = '';
+    document.getElementById('voiceTranscript').textContent = 'Hold the button and speak your setup...';
+    document.getElementById('voiceStatusLabel').textContent = 'Push to Talk';
+    document.getElementById('voiceSendBtn').classList.remove('visible');
+    document.getElementById('pttBtn').className = 'ptt-btn';
+    document.getElementById('pttBtn').textContent = '🎙️';
+    setRings(false);
+    document.getElementById('voiceOverlay').classList.add('active');
+  }
+
+  function cancelVoice() {
+    stopRecording(true);
+    voiceTranscriptText = '';
+    document.getElementById('voiceOverlay').classList.remove('active');
+  }
+
+  function submitVoice() {
+    const text = voiceTranscriptText.trim();
+    document.getElementById('voiceOverlay').classList.remove('active');
+    voiceTranscriptText = '';
+    if (text) {
+      document.getElementById('msgInput').value = text;
+      autoResize(document.getElementById('msgInput'));
+      sendMessage();
+    }
+  }
+
+  function setRings(on) {
+    ['ring1','ring2','ring3'].forEach(id => {
+      const el = document.getElementById(id);
+      if (on) el.classList.add('animate');
+      else el.classList.remove('animate');
+    });
+  }
+
+  async function startRecording() {
+    if (isPressing) return;
+    isPressing = true;
+    audioChunks = [];
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+      mediaRecorder.start(100);
+
+      document.getElementById('pttBtn').className = 'ptt-btn pressed';
+      document.getElementById('pttBtn').textContent = '⏹';
+      document.getElementById('voiceStatusLabel').textContent = 'Recording...';
+      document.getElementById('voiceTranscript').textContent = 'Speak now — release when done';
+      document.getElementById('voiceSendBtn').classList.remove('visible');
+      setRings(true);
+    } catch (err) {
+      isPressing = false;
+      document.getElementById('voiceTranscript').textContent = 'Mic access failed — check Brave settings.';
+    }
+  }
+
+  async function stopRecording(cancel = false) {
+    if (!isPressing) return;
+    isPressing = false;
+    setRings(false);
+
+    if (!mediaRecorder) return;
+
+    const stream = mediaRecorder.stream;
+
+    return new Promise((resolve) => {
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+
+        if (cancel || audioChunks.length === 0) {
+          mediaRecorder = null;
+          resolve();
+          return;
+        }
+
+        // Show processing state
+        document.getElementById('pttBtn').className = 'ptt-btn processing';
+        document.getElementById('pttBtn').textContent = '⏳';
+        document.getElementById('voiceStatusLabel').textContent = 'Transcribing...';
+        document.getElementById('voiceTranscript').textContent = 'Processing your audio...';
+
+        try {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const formData = new FormData();
+          formData.append('audio', audioBlob, 'recording.webm');
+
+          const res = await fetch(TRANSCRIBE_URL, {
+            method: 'POST',
+            body: formData
+          });
+
+          const data = await res.json();
+
+          if (data.transcript && data.transcript.trim()) {
+            voiceTranscriptText = data.transcript.trim();
+            document.getElementById('voiceStatusLabel').textContent = 'Got it — review or send';
+            document.getElementById('voiceTranscript').textContent = voiceTranscriptText;
+            document.getElementById('voiceSendBtn').classList.add('visible');
+          } else if (data.error) {
+            document.getElementById('voiceStatusLabel').textContent = 'Error';
+            document.getElementById('voiceTranscript').textContent = 'Transcription unavailable — type your setup instead.';
+          } else {
+            document.getElementById('voiceStatusLabel').textContent = 'Nothing captured';
+            document.getElementById('voiceTranscript').textContent = 'No speech detected — try again.';
+          }
+        } catch (err) {
+          document.getElementById('voiceStatusLabel').textContent = 'Error';
+          document.getElementById('voiceTranscript').textContent = 'Could not reach transcription service.';
+        }
+
+        document.getElementById('pttBtn').className = 'ptt-btn';
+        document.getElementById('pttBtn').textContent = '🎙️';
+        mediaRecorder = null;
+        resolve();
+      };
+
+      mediaRecorder.stop();
+    });
+  }
+
+  // ─── PTT button events ───
+  const pttBtn = document.getElementById('pttBtn');
+  pttBtn.addEventListener('mousedown', (e) => { e.preventDefault(); startRecording(); });
+  pttBtn.addEventListener('mouseup', () => stopRecording());
+  pttBtn.addEventListener('mouseleave', () => { if (isPressing) stopRecording(); });
+  pttBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecording(); }, { passive: false });
+  pttBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopRecording(); }, { passive: false });
+
+  // ─── Spacebar PTT ───
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && !spaceHeld && document.getElementById('voiceOverlay').classList.contains('active')) {
+      e.preventDefault();
+      spaceHeld = true;
+      startRecording();
+    }
+  });
+  document.addEventListener('keyup', (e) => {
+    if (e.code === 'Space' && spaceHeld) {
+      spaceHeld = false;
+      stopRecording();
+    }
+  });
+
+  // ─── Image handling ───
+  function handleImageSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      pendingImageBase64 = dataUrl.split(',')[1];
+      pendingImageMime = file.type || 'image/png';
+      document.getElementById('imgPreviewThumb').src = dataUrl;
+      document.getElementById('imgPreviewBar').classList.add('active');
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
+  }
+
+  function clearImage() {
+    pendingImageBase64 = null;
+    pendingImageMime = null;
+    document.getElementById('imgPreviewBar').classList.remove('active');
+    document.getElementById('imgPreviewThumb').src = '';
+  }
+
+  // ─── Chat helpers ───
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function quickSend(text) {
+    document.getElementById('msgInput').value = text;
+    sendMessage();
+  }
+
+  function addMessage(text, type, imgSrc) {
+    const area = document.getElementById('chatArea');
+    const div = document.createElement('div');
+    div.className = 'message ' + type;
+    const label = type === 'alfred' ? 'Alfred' : 'You';
+    let inner = '<div class="message-label">' + label + '</div>';
+    if (imgSrc) {
+      inner += '<img class="chart-img" src="' + imgSrc + '" alt="chart">';
+      if (text) inner += '<div style="margin-top:8px;">' + escapeHtml(text) + '</div>';
+    } else {
+      inner += escapeHtml(text);
+    }
+    div.innerHTML = inner;
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+  }
+
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+  }
+
+  function addTyping() {
+    const area = document.getElementById('chatArea');
+    const div = document.createElement('div');
+    div.className = 'typing';
+    div.id = 'typingIndicator';
+    div.innerHTML = '<span></span><span></span><span></span>';
+    area.appendChild(div);
+    area.scrollTop = area.scrollHeight;
+  }
+
+  function removeTyping() {
+    const t = document.getElementById('typingIndicator');
+    if (t) t.remove();
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const text = input.value.trim();
+    const hasImage = !!pendingImageBase64;
+    if (!text && !hasImage) return;
+
+    const displayText = text || 'Here is my chart:';
+    const imgDataUrl = hasImage ? 'data:' + pendingImageMime + ';base64,' + pendingImageBase64 : null;
+    addMessage(displayText, 'user', imgDataUrl);
+
+    let userContent;
+    if (hasImage) {
+      userContent = [
+        { type: 'image_url', image_url: { url: 'data:' + pendingImageMime + ';base64,' + pendingImageBase64 } },
+        { type: 'text', text: text || 'Analyze this chart using the full LEF system.' }
+      ];
+    } else {
+      userContent = text;
+    }
+
+    conversationHistory.push({ role: 'user', content: userContent });
+    input.value = '';
+    input.style.height = 'auto';
+    clearImage();
+    addTyping();
+
+    try {
+      const messages = [
+        { role: 'system', content: SYSTEM_PROMPT },
+        ...conversationHistory
+      ];
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages })
+      });
+
+      removeTyping();
+
+      if (!response.ok) {
+        addMessage('Connection issue — try again in a moment.', 'alfred');
+        return;
+      }
+
+      const data = await response.json();
+      const reply = data.message || data.content || data.choices?.[0]?.message?.content || 'No response received.';
+      conversationHistory.push({ role: 'assistant', content: reply });
+      addMessage(reply, 'alfred');
+
+    } catch (err) {
+      removeTyping();
+      addMessage('Connection issue — check your network and try again.', 'alfred');
+      console.error(err);
+    }
+  }
+
+  // ─── LOCK SCREEN ───
+  const MASTER_PASSWORD = '#LEFISTHEGOAT@';
+  const DEFAULT_PIN = '1234';
+  const LOCK_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+  let lockTimer = null;
+
+  function checkLock() {
+    const val = document.getElementById('lockInput').value;
+    if (val === MASTER_PASSWORD || val === DEFAULT_PIN) {
+      document.getElementById('lockScreen').classList.add('hidden');
+      document.getElementById('lockInput').value = '';
+      document.getElementById('lockError').textContent = '';
+      resetLockTimer();
+    } else {
+      const input = document.getElementById('lockInput');
+      input.classList.add('error');
+      document.getElementById('lockError').textContent = 'Incorrect password';
+      input.value = '';
+      setTimeout(() => input.classList.remove('error'), 400);
+    }
+  }
+
+  function lockKeydown(e) {
+    if (e.key === 'Enter') checkLock();
+  }
+
+  function lockApp() {
+    document.getElementById('lockScreen').classList.remove('hidden');
+    document.getElementById('lockInput').value = '';
+    document.getElementById('lockError').textContent = '';
+    setTimeout(() => document.getElementById('lockInput').focus(), 100);
+    clearTimeout(lockTimer);
+  }
+
+  function resetLockTimer() {
+    clearTimeout(lockTimer);
+    lockTimer = setTimeout(lockApp, LOCK_TIMEOUT);
+  }
+
+  // Reset timer on any user activity
+  ['click','keydown','touchstart','mousemove'].forEach(evt =>
+    document.addEventListener(evt, resetLockTimer, { passive: true })
+  );
+
+  // Lock on page hide (tab switch / close)
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) lockApp();
+  });
+
+  // Start timer on load
+  resetLockTimer();
+  // Focus the lock input on load
+  setTimeout(() => document.getElementById('lockInput').focus(), 200);
+</script>
+</body>
+</html>
