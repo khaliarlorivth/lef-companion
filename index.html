@@ -458,6 +458,10 @@
     <button class="send-btn" onclick="sendMessage()">➤</button>
   </div>
   <div class="watermark">LORIVTH EQUITY FIRM — PROPRIETARY SYSTEM</div>
+  <div style="display:flex;justify-content:center;gap:12px;margin-top:6px;">
+    <button onclick="lockApp()" style="background:none;border:1px solid #FFD700;color:#FFD700;font-size:11px;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:Arial;">🔒 Lock</button>
+    <button onclick="clearHistory()" style="background:none;border:1px solid #888;color:#888;font-size:11px;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:Arial;">🗑 Clear History</button>
+  </div>
 </div>
 
 <script>
@@ -481,7 +485,7 @@ Timeframe hierarchy: Daily > 4h > 1h > 25m > 15m > 5m > 1m (entry only). Never a
 
 When an image is provided, analyze it as a trading chart. Identify: indicator readings, key levels visible, trend direction, any SRP/FRD signals, and give a clear actionable read. Respond in plain text only. No markdown. Be concise and direct like a trading partner sitting at the desk.`;
 
-  let conversationHistory = [];
+  let conversationHistory = JSON.parse(localStorage.getItem("lef_chat_history") || "[]");
   let pendingImageBase64 = null;
   let pendingImageMime = null;
 
@@ -721,6 +725,8 @@ When an image is provided, analyze it as a trading chart. Identify: indicator re
     if (t) t.remove();
   }
 
+  function saveHistory() { try { localStorage.setItem('lef_chat_history', JSON.stringify(conversationHistory.slice(-100))); } catch(e) {} }
+
   async function sendMessage() {
     const input = document.getElementById('msgInput');
     const text = input.value.trim();
@@ -741,7 +747,7 @@ When an image is provided, analyze it as a trading chart. Identify: indicator re
       userContent = text;
     }
 
-    conversationHistory.push({ role: 'user', content: userContent });
+    conversationHistory.push({ role: 'user', content: userContent }); saveHistory();
     input.value = '';
     input.style.height = 'auto';
     clearImage();
@@ -768,7 +774,7 @@ When an image is provided, analyze it as a trading chart. Identify: indicator re
 
       const data = await response.json();
       const reply = data.message || data.content || data.choices?.[0]?.message?.content || 'No response received.';
-      conversationHistory.push({ role: 'assistant', content: reply });
+      conversationHistory.push({ role: 'assistant', content: reply }); saveHistory();
       addMessage(reply, 'alfred');
 
     } catch (err) {
@@ -784,6 +790,34 @@ When an image is provided, analyze it as a trading chart. Identify: indicator re
   const LOCK_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   let lockTimer = null;
 
+  function restoreChat() {
+    const area = document.getElementById('chatArea');
+    // Only restore if chat area is empty
+    if (area.children.length === 0 && conversationHistory.length > 0) {
+      conversationHistory.forEach(msg => {
+        if (msg.role === 'user') {
+          if (Array.isArray(msg.content)) {
+            const textPart = msg.content.find(p => p.type === 'text');
+            addMessage(textPart ? textPart.text : 'Chart sent', 'user');
+          } else {
+            addMessage(msg.content, 'user');
+          }
+        } else if (msg.role === 'assistant') {
+          addMessage(msg.content, 'alfred');
+        }
+      });
+      area.scrollTop = area.scrollHeight;
+    }
+  }
+
+  function clearHistory() {
+    if (confirm('Clear all chat history?')) {
+      conversationHistory = [];
+      localStorage.removeItem('lef_chat_history');
+      document.getElementById('chatArea').innerHTML = '';
+    }
+  }
+
   function checkLock() {
     const val = document.getElementById('lockInput').value;
     if (val === MASTER_PASSWORD) {
@@ -791,6 +825,7 @@ When an image is provided, analyze it as a trading chart. Identify: indicator re
       document.getElementById('lockInput').value = '';
       document.getElementById('lockError').textContent = '';
       resetLockTimer();
+      restoreChat();
     } else {
       const input = document.getElementById('lockInput');
       input.classList.add('error');
