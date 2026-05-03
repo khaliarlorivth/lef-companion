@@ -2580,7 +2580,7 @@ function getStoredPin() {
 }
 
 function showLockScreen() {
-  sessionStorage.removeItem('lef_unlocked');
+  localStorage.removeItem('lef_unlocked');
   document.getElementById('pinLockScreen').classList.remove('hidden');
   pinBuffer = '';
   document.getElementById('pinError').textContent = '';
@@ -2591,7 +2591,7 @@ function showLockScreen() {
 }
 
 function hideLockScreen() {
-  sessionStorage.setItem('lef_unlocked', '1');
+  localStorage.setItem('lef_unlocked', '1');
   document.getElementById('pinLockScreen').classList.add('hidden');
   resetLockTimer();
 }
@@ -2725,7 +2725,7 @@ document.addEventListener('visibilitychange', () => {
 
 // Show lock screen on first load — unless already unlocked this session
 window.addEventListener('DOMContentLoaded', () => {
-  if (sessionStorage.getItem('lef_unlocked') === '1') {
+  if (localStorage.getItem('lef_unlocked') === '1') {
     hideLockScreen();
   } else {
     showLockScreen();
