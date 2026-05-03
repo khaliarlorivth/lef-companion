@@ -2626,12 +2626,7 @@ function checkPin() {
   if (isMaster || isUserPin || isOneTime) {
     if (input) input.value = '';
     hideLockScreen();
-    // If they used the one-time password, prompt them to set a real password
-    if (isOneTime) {
-      setTimeout(() => {
-        showSetPasswordPrompt();
-      }, 400);
-    }
+
   } else {
     document.getElementById('pinError').textContent = 'INCORRECT PASSWORD';
     if (input) { input.value = ''; input.focus(); }
@@ -2643,48 +2638,9 @@ function checkPin() {
   }
 }
 
-function showSetPasswordPrompt() {
-  const modal = document.getElementById('setPasswordModal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    modal.style.display = 'flex';
-    setTimeout(() => {
-      const inp = document.getElementById('firstPassNew');
-      if (inp) inp.focus();
-    }, 100);
-  }
-}
 
-function saveFirstPassword() {
-  const newPass = document.getElementById('firstPassNew').value;
-  const confirmPass = document.getElementById('firstPassConfirm').value;
-  const msg = document.getElementById('firstPassMsg');
 
-  if (newPass.length < 1) {
-    msg.style.color = '#FF3333';
-    msg.textContent = 'PASSWORD CANNOT BE EMPTY';
-    return;
-  }
-  if (newPass !== confirmPass) {
-    msg.style.color = '#FF3333';
-    msg.textContent = 'PASSWORDS DO NOT MATCH';
-    return;
-  }
 
-  localStorage.setItem('lef_pin', newPass);
-  msg.style.color = '#FFD700';
-  msg.textContent = 'PASSWORD SET ✓';
-  setTimeout(() => {
-    const modal = document.getElementById('setPasswordModal');
-    modal.style.display = 'none';
-    modal.classList.add('hidden');
-    document.getElementById('firstPassNew').value = '';
-    document.getElementById('firstPassConfirm').value = '';
-    msg.textContent = '';
-    document.getElementById('pinLockScreen').classList.add('hidden');
-    document.getElementById('pinLockScreen').style.display = 'none';
-  }, 1000);
-}
 
 function saveNewPin() {
   const current = document.getElementById('pinCurrent').value;
@@ -2919,18 +2875,5 @@ if (!localStorage.getItem('lefPrivacyAck')) {
   document.getElementById('stripePrivacyNotice').style.display = 'block';
 }
 </script>
-
-  <!-- SET PASSWORD MODAL (shown after first one-time login) -->
-  <div id="setPasswordModal" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;flex-direction:column;">
-    <div style="background:#1a1a1a;border:2px solid #FFD700;border-radius:14px;padding:32px 28px;max-width:320px;width:90%;text-align:center;">
-      <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" style="width:60px;margin-bottom:14px;">
-      <div style="color:#FFD700;font-size:16px;font-weight:bold;letter-spacing:2px;margin-bottom:6px;">SET YOUR PASSWORD</div>
-      <div style="color:rgba(255,215,0,0.6);font-size:12px;margin-bottom:18px;">Your one-time access code has been used. Create your personal password to continue.</div>
-      <input type="password" id="firstPassNew" placeholder="New password" autocomplete="off" style="width:100%;padding:12px;background:#111;border:1px solid #FFD700;border-radius:8px;color:#FFD700;font-size:15px;text-align:center;margin-bottom:10px;outline:none;box-sizing:border-box;">
-      <input type="password" id="firstPassConfirm" placeholder="Confirm password" autocomplete="off" onkeydown="if(event.key==='Enter') saveFirstPassword()" style="width:100%;padding:12px;background:#111;border:1px solid #FFD700;border-radius:8px;color:#FFD700;font-size:15px;text-align:center;margin-bottom:14px;outline:none;box-sizing:border-box;">
-      <button onclick="saveFirstPassword()" style="width:100%;padding:12px;background:#FF3333;color:#FFD700;border:none;border-radius:8px;font-size:14px;font-weight:bold;letter-spacing:2px;cursor:pointer;">SAVE PASSWORD</button>
-      <div id="firstPassMsg" style="margin-top:10px;font-size:13px;min-height:18px;"></div>
-    </div>
-  </div>
 </body>
 </html>
