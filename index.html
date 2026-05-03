@@ -2152,16 +2152,12 @@ function showDrawerView(view) {
   const tabsMain = document.getElementById('tabsMainView');
   const tabDetail = document.getElementById('tabDetailView');
   const settingsView = document.getElementById('settingsView');
-  const navTabs = document.getElementById('navTabsBtn');
-  const navSettings = document.getElementById('navSettingsBtn');
   const headerTitle = document.getElementById('drawerHeaderTitle');
   const backBtn = document.getElementById('drawerBackBtn');
 
   tabsMain.style.display = view === 'tabs' ? '' : 'none';
   tabDetail.style.display = 'none';
   settingsView.classList.toggle('open', view === 'settings');
-  navTabs.classList.toggle('active', view === 'tabs');
-  navSettings.classList.toggle('active', view === 'settings');
 
   if (headerTitle) headerTitle.textContent = view === 'settings' ? 'SETTINGS' : 'LEF MENU';
   if (backBtn) backBtn.style.display = view === 'settings' ? 'flex' : 'none';
