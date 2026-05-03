@@ -2154,12 +2154,17 @@ function showDrawerView(view) {
   const settingsView = document.getElementById('settingsView');
   const navTabs = document.getElementById('navTabsBtn');
   const navSettings = document.getElementById('navSettingsBtn');
+  const headerTitle = document.getElementById('drawerHeaderTitle');
+  const backBtn = document.getElementById('drawerBackBtn');
 
   tabsMain.style.display = view === 'tabs' ? '' : 'none';
   tabDetail.style.display = 'none';
   settingsView.classList.toggle('open', view === 'settings');
   navTabs.classList.toggle('active', view === 'tabs');
   navSettings.classList.toggle('active', view === 'settings');
+
+  if (headerTitle) headerTitle.textContent = view === 'settings' ? 'SETTINGS' : 'LEF MENU';
+  if (backBtn) backBtn.style.display = view === 'settings' ? 'flex' : 'none';
 
   if (view === 'settings' && !_settingsLoaded) {
     loadSettingsFromStorage();
@@ -2742,9 +2747,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()">
 <div class="side-drawer" id="sideDrawer" onclick="event.stopPropagation()">
-  <div class="drawer-header">
+  <div class="drawer-header" style="display:flex;align-items:center;gap:12px;position:relative;">
+    <button id="drawerBackBtn" onclick="showDrawerView('tabs')" style="display:none;align-items:center;gap:6px;background:transparent;border:1px solid #FFD700;border-radius:8px;color:#FFD700;font-size:12px;font-weight:700;letter-spacing:1px;padding:5px 12px;cursor:pointer;">&#8592; BACK</button>
     <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF" id="lefLogoBtn" onclick="document.getElementById('missionModal').classList.add('active')" style="cursor:pointer;">
-    <div class="drawer-header-text">LEF Menu</div>
+    <div class="drawer-header-text" id="drawerHeaderTitle">LEF MENU</div>
   </div>
 
   <!-- Main tabs list -->
