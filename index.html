@@ -2626,7 +2626,9 @@ function checkPin() {
   if (isMaster || isUserPin || isOneTime) {
     if (input) input.value = '';
     hideLockScreen();
-
+    if (isOneTime) {
+      setTimeout(() => showFirstLoginNotice(), 400);
+    }
   } else {
     document.getElementById('pinError').textContent = 'INCORRECT PASSWORD';
     if (input) { input.value = ''; input.focus(); }
@@ -2641,6 +2643,27 @@ function checkPin() {
 
 
 
+
+function showFirstLoginNotice() {
+  // Only show once — track with localStorage
+  if (localStorage.getItem('lef_first_login_seen')) return;
+  localStorage.setItem('lef_first_login_seen', '1');
+  const notice = document.getElementById('firstLoginNotice');
+  if (notice) {
+    notice.style.display = 'flex';
+    // Auto-dismiss after 8 seconds
+    setTimeout(() => dismissFirstLoginNotice(), 8000);
+  }
+}
+
+function dismissFirstLoginNotice() {
+  const notice = document.getElementById('firstLoginNotice');
+  if (notice) {
+    notice.style.opacity = '0';
+    notice.style.transition = 'opacity 0.4s';
+    setTimeout(() => { notice.style.display = 'none'; }, 400);
+  }
+}
 
 function saveNewPin() {
   const current = document.getElementById('pinCurrent').value;
@@ -2875,5 +2898,15 @@ if (!localStorage.getItem('lefPrivacyAck')) {
   document.getElementById('stripePrivacyNotice').style.display = 'block';
 }
 </script>
+
+  <!-- FIRST LOGIN NOTICE OVERLAY -->
+  <div id="firstLoginNotice" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:9998;align-items:center;justify-content:center;">
+    <div style="background:#1a1a1a;border:2px solid #FFD700;border-radius:14px;padding:30px 26px;max-width:300px;width:88%;text-align:center;position:relative;">
+      <div style="font-size:28px;margin-bottom:10px;">🔐</div>
+      <div style="color:#FFD700;font-size:15px;font-weight:bold;letter-spacing:2px;margin-bottom:10px;">WELCOME TO LEF</div>
+      <div style="color:rgba(255,215,0,0.75);font-size:13px;line-height:1.6;margin-bottom:18px;">Your one-time access code has been used and is now deleted.<br><br>Go to <span style="color:#FF3333;font-weight:bold;">Settings → Security</span> to set your personal password.</div>
+      <button onclick="dismissFirstLoginNotice()" style="padding:10px 28px;background:#FF3333;color:#FFD700;border:none;border-radius:8px;font-size:13px;font-weight:bold;letter-spacing:2px;cursor:pointer;">GOT IT</button>
+    </div>
+  </div>
 </body>
 </html>
