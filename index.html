@@ -2635,17 +2635,17 @@ function saveNewPin() {
   const validCurrent = (current === MASTER_PASSWORD) || (storedPin && current === storedPin);
   if (!validCurrent) {
     msg.style.color = '#FF3333';
-    msg.textContent = 'CURRENT PIN INCORRECT';
+    msg.textContent = 'CURRENT PASSWORD INCORRECT';
     return;
   }
-  if (newPin.length !== 4 || !/^[0-9]{4}$/.test(newPin)) {
+  if (newPin.length < 1) {
     msg.style.color = '#FF3333';
-    msg.textContent = 'PIN MUST BE 4 DIGITS';
+    msg.textContent = 'PASSWORD CANNOT BE EMPTY';
     return;
   }
   if (newPin !== confirm) {
     msg.style.color = '#FF3333';
-    msg.textContent = 'PINS DO NOT MATCH';
+    msg.textContent = 'PASSWORDS DO NOT MATCH';
     return;
   }
 
@@ -2654,7 +2654,7 @@ function saveNewPin() {
   document.getElementById('pinNew').value = '';
   document.getElementById('pinConfirm').value = '';
   msg.style.color = '#FFD700';
-  msg.textContent = 'PIN UPDATED ✓';
+  msg.textContent = 'PASSWORD UPDATED ✓';
   setTimeout(() => { msg.textContent = ''; }, 3000);
 }
 
@@ -2772,13 +2772,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     <div class="settings-section-label">Security</div>
     <div class="pin-change-form">
-      <label>CURRENT PIN</label>
-      <input type="password" inputmode="numeric" maxlength="4" id="pinCurrent" placeholder="••••">
-      <label>NEW PIN</label>
-      <input type="password" inputmode="numeric" maxlength="4" id="pinNew" placeholder="••••">
-      <label>CONFIRM NEW PIN</label>
-      <input type="password" inputmode="numeric" maxlength="4" id="pinConfirm" placeholder="••••">
-      <button class="pin-save-btn" onclick="saveNewPin()">SAVE NEW PIN</button>
+      <label>CURRENT PASSWORD</label>
+      <input type="password" id="pinCurrent" placeholder="Current password" autocomplete="off">
+      <label>NEW PASSWORD</label>
+      <input type="password" id="pinNew" placeholder="Letters and/or numbers" autocomplete="off">
+      <label>CONFIRM NEW PASSWORD</label>
+      <input type="password" id="pinConfirm" placeholder="Confirm new password" autocomplete="off">
+      <button class="pin-save-btn" onclick="saveNewPin()">SAVE NEW PASSWORD</button>
       <div class="pin-msg" id="pinChangeMsg"></div>
     </div>
 
