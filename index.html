@@ -2298,6 +2298,9 @@ const TAB_ICONS = ['📌','📋','🗂️','⭐','🔥','💡','📊','🎯','�
 
 // Global tabs array — single source of truth
 window._tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[]');
+// One-time migration: remove legacy Home tab
+window._tabs = window._tabs.filter(t => !(t.name === 'Home' && t.icon === '📌'));
+localStorage.setItem('lef_tabs', JSON.stringify(window._tabs));
 
 function loadTabs() {
   renderTabs(window._tabs);
