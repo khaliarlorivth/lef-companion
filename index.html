@@ -859,8 +859,8 @@ body.light-mode {
     display: none;
     position: fixed;
     inset: 0;
-    background: var(--bg-drawer);
-    z-index: 600;
+    background: rgba(0,0,0,0.55);
+    z-index: 20000;
   }
   .tab-modal-overlay.open { display: block; }
   .tab-modal {
@@ -874,7 +874,7 @@ body.light-mode {
     border-radius: 12px;
     padding: 22px;
     width: 280px;
-    z-index: 601;
+    z-index: 20001;
     animation: fadeIn 0.2s ease;
   }
   .tab-modal.open { display: block; }
