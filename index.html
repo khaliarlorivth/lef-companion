@@ -1211,6 +1211,39 @@ body.light-mode {
 
 
   /* PIN LOCK SCREEN */
+  .pin-input-box {
+    width: 280px;
+    padding: 14px 18px;
+    background: #1a1a1a;
+    border: 2px solid #FFD700;
+    border-radius: 8px;
+    color: #FFD700;
+    font-size: 18px;
+    text-align: center;
+    letter-spacing: 3px;
+    font-family: Arial, sans-serif;
+    margin: 16px 0 8px 0;
+    outline: none;
+  }
+  .pin-input-box:focus { border-color: #FF3333; box-shadow: 0 0 12px rgba(255,215,0,0.3); }
+  .pin-input-box::placeholder { color: rgba(255,215,0,0.4); letter-spacing: 1px; font-size: 14px; }
+  .pin-submit-btn {
+    margin-top: 12px;
+    padding: 12px 40px;
+    background: #FF3333;
+    color: #FFD700;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    cursor: pointer;
+    font-family: Arial, sans-serif;
+    transition: background 0.2s;
+  }
+  .pin-submit-btn:hover { background: #cc0000; }
+  .pin-submit-btn:active { background: #FFD700; color: #000; }
+  /* PIN LOCK SCREEN */
   #pinLockScreen {
     position: fixed;
     inset: 0;
@@ -1292,28 +1325,10 @@ body.light-mode {
   <div id="pinLockScreen" class="hidden">
     <img class="pin-logo" src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF">
     <div class="pin-title">Lorivth Equity Firm</div>
-    <div class="pin-subtitle">Enter PIN to continue</div>
-    <div class="pin-dots">
-      <div class="pin-dot" id="pd0"></div>
-      <div class="pin-dot" id="pd1"></div>
-      <div class="pin-dot" id="pd2"></div>
-      <div class="pin-dot" id="pd3"></div>
-    </div>
+    <div class="pin-subtitle">Enter password to continue</div>
+    <input type="password" id="pinInput" class="pin-input-box" placeholder="Enter password..." autocomplete="off" onkeydown="if(event.key==='Enter') checkPin()" oninput="document.getElementById('pinError').textContent=''">
     <div class="pin-error" id="pinError"></div>
-    <div class="pin-pad">
-      <button class="pin-btn" onclick="pinPress('1')">1</button>
-      <button class="pin-btn" onclick="pinPress('2')">2</button>
-      <button class="pin-btn" onclick="pinPress('3')">3</button>
-      <button class="pin-btn" onclick="pinPress('4')">4</button>
-      <button class="pin-btn" onclick="pinPress('5')">5</button>
-      <button class="pin-btn" onclick="pinPress('6')">6</button>
-      <button class="pin-btn" onclick="pinPress('7')">7</button>
-      <button class="pin-btn" onclick="pinPress('8')">8</button>
-      <button class="pin-btn" onclick="pinPress('9')">9</button>
-      <div></div>
-      <button class="pin-btn" onclick="pinPress('0')">0</button>
-      <button class="pin-btn pin-del" onclick="pinDelete()">⌫</button>
-    </div>
+    <button class="pin-submit-btn" onclick="checkPin()">UNLOCK</button>
   </div>
 
 <canvas id="constellation"></canvas>
@@ -2539,7 +2554,7 @@ cloudLoadProfile();
 // ============================================================
 // PIN LOCK SYSTEM
 // ============================================================
-const MASTER_PASSWORD = '#LEFISTHEGOAT@';
+const MASTER_PASSWORD = '#LEFISTHEGOAT!';
 const AUTO_LOCK_MINUTES = 5;
 let pinBuffer = '';
 let lockTimer = null;
@@ -2551,8 +2566,11 @@ function getStoredPin() {
 function showLockScreen() {
   document.getElementById('pinLockScreen').classList.remove('hidden');
   pinBuffer = '';
-  updatePinDots();
   document.getElementById('pinError').textContent = '';
+  setTimeout(() => {
+    const inp = document.getElementById('pinInput');
+    if (inp) inp.focus();
+  }, 100);
 }
 
 function hideLockScreen() {
@@ -2587,18 +2605,20 @@ function pinDelete() {
 }
 
 function checkPin() {
+  const input = document.getElementById('pinInput');
+  const entered = input ? input.value : pinBuffer;
   const userPin = getStoredPin();
-  const isMaster = pinBuffer === MASTER_PASSWORD;
-  const isUserPin = userPin && pinBuffer === userPin;
+  const isMaster = entered === MASTER_PASSWORD;
+  const isUserPin = userPin && entered === userPin;
   if (isMaster || isUserPin) {
+    if (input) input.value = '';
     hideLockScreen();
   } else {
-    document.getElementById('pinError').textContent = 'INCORRECT PIN';
+    document.getElementById('pinError').textContent = 'INCORRECT PASSWORD';
+    if (input) { input.value = ''; input.focus(); }
     pinBuffer = '';
-    updatePinDots();
     // Shake effect
     const screen = document.getElementById('pinLockScreen');
-    screen.style.animation = 'none';
     screen.style.transform = 'translateX(-10px)';
     setTimeout(() => { screen.style.transform = 'translateX(10px)'; }, 80);
     setTimeout(() => { screen.style.transform = 'translateX(0)'; }, 160);
