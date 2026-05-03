@@ -478,17 +478,21 @@ body.light-mode {
 
   .profile-dropdown {
     display: none;
-    position: absolute;
-    top: 58px;
-    right: 16px;
-    width: 280px;
+    position: fixed;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%, -50%);
+    width: 560px;
+    max-width: 92vw;
+    max-height: 88vh;
+    overflow-y: auto;
     background: var(--bg-panel);
     border: 1px solid #FFD700;
     border-radius: 12px;
-    padding: 18px;
-    z-index: 200;
+    padding: 24px;
+    z-index: 20001;
     box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-    animation: fadeIn 0.2s ease;
+    animation: modalFadeIn 0.2s ease;
   }
   .profile-dropdown.open { display: block; }
 
@@ -2081,11 +2085,15 @@ function saveProfile() {
 // Toggle dropdown
 document.getElementById('profileBtn').addEventListener('click', function(e) {
   e.stopPropagation();
-  document.getElementById('profileDropdown').classList.toggle('open');
+  const pd = document.getElementById('profileDropdown');
+  const po = document.getElementById('profileOverlay');
+  const isOpen = pd.classList.toggle('open');
+  if (isOpen) { po.classList.add('open'); } else { po.classList.remove('open'); }
 });
 
 // Close on outside click
 document.addEventListener('click', function(e) {
+  document.getElementById('profileOverlay').classList.remove('open');
   const dd = document.getElementById('profileDropdown');
   if (!dd.contains(e.target) && e.target.id !== 'profileBtn') {
     dd.classList.remove('open');
@@ -2869,6 +2877,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 <!-- Add Tab Modal -->
 <div class="tab-modal-overlay" id="tabModalOverlay" onclick="closeTabModal()"></div>
+<div class="tab-modal-overlay" id="profileOverlay" onclick="closeProfileDropdown()" style="z-index:20000;"></div>
 <div class="tab-modal" id="tabModal">
   <div class="tab-modal-title">New Tab</div>
   <div class="profile-field" style="margin-bottom:12px;">
