@@ -2671,7 +2671,7 @@ function saveNewPin() {
   const msg = document.getElementById('pinChangeMsg');
 
   const storedPin = getStoredPin();
-  const validCurrent = (current === MASTER_PASSWORD) || (storedPin && current === storedPin);
+  const validCurrent = (current === MASTER_PASSWORD) || (storedPin && current === storedPin) || (!storedPin && current === ONE_TIME_PASSWORD);
   if (!validCurrent) {
     msg.style.color = '#FF3333';
     msg.textContent = 'CURRENT PASSWORD INCORRECT';
