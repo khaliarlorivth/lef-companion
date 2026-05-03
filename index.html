@@ -2297,7 +2297,7 @@ document.getElementById('hamburgerBtn').addEventListener('click', function(e) {
 const TAB_ICONS = ['📌','📋','🗂️','⭐','🔥','💡','📊','🎯','📝','🔍'];
 
 // Global tabs array — single source of truth
-window._tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[{"name":"Home","icon":"📌"}]');
+window._tabs = JSON.parse(localStorage.getItem('lef_tabs') || '[]');
 
 function loadTabs() {
   renderTabs(window._tabs);
@@ -2457,7 +2457,7 @@ async function cloudLoadProfile() {
 async function cloudSaveProfile() {
   try {
     const key = getUserKey();
-    const tabs = JSON.stringify(window._tabs || [{"name":"Home","icon":"📌"}]);
+    const tabs = JSON.stringify(window._tabs || []);
     const pfp = localStorage.getItem('lef_pfp') || '';
     const body = {
       user_key: key,
@@ -2494,7 +2494,7 @@ async function cloudSaveProfile() {
 }
 
 async function cloudSaveTabs() {
-  const tabs = JSON.stringify(window._tabs || [{"name":"Home","icon":"📌"}]);
+  const tabs = JSON.stringify(window._tabs || []);
   try {
     const key = getUserKey();
     if (window._cloudProfileId) {
