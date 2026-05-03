@@ -118,6 +118,7 @@ body.light-mode {
     line-height: 1.5;
   }
   @keyframes fadeIn { from { transform: translateY(6px); } to { transform: translateY(0); } }
+  @keyframes modalFadeIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.97); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
   .message.alfred {
     background: rgba(26, 26, 26, 0.5);
     border: 1px solid #FFD700;
@@ -876,7 +877,7 @@ body.light-mode {
     padding: 22px;
     width: 280px;
     z-index: 20001;
-    animation: fadeIn 0.2s ease;
+    animation: modalFadeIn 0.2s ease;
   }
   .tab-modal.open { display: block; }
   .tab-modal-title {
