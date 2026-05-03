@@ -2670,7 +2670,12 @@ function saveFirstPassword() {
   msg.textContent = 'PASSWORD SET ✓';
   setTimeout(() => {
     document.getElementById('setPasswordModal').classList.add('hidden');
-  }, 1500);
+    document.getElementById('firstPassNew').value = '';
+    document.getElementById('firstPassConfirm').value = '';
+    msg.textContent = '';
+    // Make sure lock screen is hidden and companion is visible
+    document.getElementById('pinLockScreen').classList.add('hidden');
+  }, 1000);
 }
 
 function saveNewPin() {
