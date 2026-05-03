@@ -2747,18 +2747,25 @@ window.addEventListener('DOMContentLoaded', () => {
 
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()">
 <div class="side-drawer" id="sideDrawer" onclick="event.stopPropagation()">
-  <div class="drawer-header" style="display:flex;align-items:center;gap:12px;position:relative;">
-    <button id="drawerBackBtn" onclick="showDrawerView('tabs')" style="display:none;align-items:center;gap:6px;background:transparent;border:1px solid #FFD700;border-radius:8px;color:#FFD700;font-size:12px;font-weight:700;letter-spacing:1px;padding:5px 12px;cursor:pointer;">&#8592; BACK</button>
-    <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF" id="lefLogoBtn" onclick="document.getElementById('missionModal').classList.add('active')" style="cursor:pointer;">
-    <div class="drawer-header-text" id="drawerHeaderTitle">LEF MENU</div>
+  <div class="drawer-header" style="display:flex;align-items:center;justify-content:space-between;position:relative;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="https://media.base44.com/images/public/69e6c9e3e9328af8a3ecc3e5/db5bcf39b_LEFBusinessLogo.PNG" alt="LEF" id="lefLogoBtn" onclick="document.getElementById('missionModal').classList.add('active')" style="cursor:pointer;">
+      <div class="drawer-header-text" id="drawerHeaderTitle">LEF MENU</div>
+    </div>
+    <button id="drawerBackBtn" onclick="showDrawerView('tabs')" style="display:none;align-items:center;gap:6px;background:transparent;border:1px solid #FFD700;border-radius:8px;color:#FFD700;font-size:12px;font-weight:700;letter-spacing:1px;padding:5px 14px;cursor:pointer;">BACK &#8594;</button>
   </div>
 
   <!-- Main tabs list -->
   <div class="tabs-main-view" id="tabsMainView">
     <div class="drawer-section">Tabs</div>
     <div id="tabsList"></div>
-    <div style="padding: 12px 16px;">
+    <div style="padding: 12px 24px;">
       <button class="add-tab-btn" onclick="addTab()">+ Add Tab</button>
+    </div>
+    <div style="border-top: 1px solid rgba(255,215,0,0.15); margin: 8px 0;"></div>
+    <div class="drawer-item" onclick="showDrawerView('settings')" style="padding: 12px 24px; cursor:pointer; display:flex; align-items:center; gap:12px;">
+      <span class="drawer-icon">⚙</span>
+      <span>Settings</span>
     </div>
   </div>
 
@@ -2855,9 +2862,7 @@ window.addEventListener('DOMContentLoaded', () => {
   </div>
 
   <!-- Drawer nav (bottom) -->
-  <div class="drawer-nav" style="border-top: 1px solid var(--border-subtle); padding: 10px 16px; background: var(--bg-drawer);">
-    <button class="drawer-nav-btn active" id="navSettingsBtn" onclick="showDrawerView('settings')">⚙ Settings</button>
-  </div>
+
   <div class="drawer-footer">LORIVTH EQUITY FIRM · ALFRED v1</div>
 </div>
 </div>
