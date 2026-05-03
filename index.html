@@ -479,8 +479,8 @@ body.light-mode {
   .profile-dropdown {
     display: none;
     position: fixed;
-    top: 50vh;
-    left: 50vw;
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%);
     width: 560px;
     max-width: 92vw;
@@ -491,10 +491,9 @@ body.light-mode {
     border-radius: 12px;
     padding: 24px;
     z-index: 20001;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-    animation: modalFadeIn 0.2s ease;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
   }
-  .profile-dropdown.open { display: block; }
+  .profile-dropdown.open { display: block; animation: modalFadeIn 0.2s ease; }
 
   .profile-dropdown h3 {
     color: #FFD700;
